@@ -1927,17 +1927,9 @@ async function setupVite(app, server) {
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path3.resolve(
-        import.meta.dirname,
-        "../..",
-        "client",
-        "index.html"
-      );
+      const clientTemplate = path3.resolve(import.meta.dirname, "../..", "client", "index.html");
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
-      template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`
-      );
+      template = template.replace(`src="/src/main.tsx"`, `src="/src/main.tsx?v=${nanoid()}"`);
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
@@ -1947,27 +1939,20 @@ async function setupVite(app, server) {
   });
 }
 function serveStatic(app) {
-  const candidates = [
-    path3.resolve(import.meta.dirname, "public"),
-    path3.resolve(import.meta.dirname, "..", "..", "dist", "public"),
-    path3.resolve(process.cwd(), "dist", "public")
-  ];
-  let distPath = candidates.find((p) => fs.existsSync(path3.join(p, "index.html")));
-  if (!distPath) {
+  const distPath = path3.resolve(process.cwd(), "dist", "public");
+  const indexPath = path3.join(distPath, "index.html");
+  if (fs.existsSync(indexPath)) {
+    app.use(express.static(distPath));
+    app.use("*", (_req, res) => {
+      res.sendFile(indexPath);
+    });
+  } else {
     const clientPath = path3.resolve(process.cwd(), "client");
-    if (fs.existsSync(path3.join(clientPath, "index.html"))) {
-      console.log(`Falling back to client directory: ${clientPath}`);
-      app.use(express.static(clientPath));
-      app.use("*", (_req, res) => res.sendFile(path3.join(clientPath, "index.html")));
-      return;
-    }
-    console.error("No static files found at any location");
-    distPath = candidates[0];
+    app.use(express.static(clientPath));
+    app.use("*", (_req, res) => {
+      res.sendFile(path3.join(clientPath, "index.html"));
+    });
   }
-  app.use(express.static(distPath));
-  app.use("*", (_req, res) => {
-    res.sendFile(path3.join(distPath, "index.html"));
-  });
 }
 
 // server/_core/index.ts
