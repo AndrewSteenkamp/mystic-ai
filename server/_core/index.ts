@@ -26,6 +26,26 @@ async function startServer() {
   // Health check for Railway
   app.get("/health", (_req, res) => res.json({ status: "ok", time: new Date().toISOString() }));
 
+  // Debug: show filesystem to help diagnose static file issues
+  app.get("/debug-files", (_req, res) => {
+    const fs = require("fs");
+    const path = require("path");
+    const cwd = process.cwd();
+    const files: string[] = [];
+    function walk(dir: string, depth: number) {
+      if (depth > 3) return;
+      try {
+        for (const entry of fs.readdirSync(dir)) {
+          const full = path.join(dir, entry);
+          files.push(full.replace(cwd, ""));
+          if (fs.statSync(full).isDirectory() && depth < 3) walk(full, depth + 1);
+        }
+      } catch {}
+    }
+    walk(cwd, 0);
+    res.json({ cwd, files });
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",

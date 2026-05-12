@@ -1984,6 +1984,25 @@ async function startServer() {
   app.use(express2.json({ limit: "50mb" }));
   app.use(express2.urlencoded({ limit: "50mb", extended: true }));
   app.get("/health", (_req, res) => res.json({ status: "ok", time: (/* @__PURE__ */ new Date()).toISOString() }));
+  app.get("/debug-files", (_req, res) => {
+    const fs2 = __require("fs");
+    const path4 = __require("path");
+    const cwd = process.cwd();
+    const files = [];
+    function walk(dir, depth) {
+      if (depth > 3) return;
+      try {
+        for (const entry of fs2.readdirSync(dir)) {
+          const full = path4.join(dir, entry);
+          files.push(full.replace(cwd, ""));
+          if (fs2.statSync(full).isDirectory() && depth < 3) walk(full, depth + 1);
+        }
+      } catch {
+      }
+    }
+    walk(cwd, 0);
+    res.json({ cwd, files });
+  });
   app.use(
     "/api/trpc",
     createExpressMiddleware({
