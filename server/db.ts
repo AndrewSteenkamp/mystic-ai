@@ -1,14 +1,20 @@
-import Database from "better-sqlite3";
+let Database: any;
+try {
+  Database = require("better-sqlite3");
+} catch {
+  console.warn("better-sqlite3 not available — using in-memory store");
+}
+
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = path.resolve(__dirname, "..", "mystic.db");
 
-let _db: Database.Database | null = null;
+let _db: any = null;
 
-export function getDb(): Database.Database {
-  if (!_db) {
+export function getDb(): any {
+  if (!_db && Database) {
     _db = new Database(DB_PATH);
     _db.pragma("journal_mode = WAL");
     _db.pragma("foreign_keys = ON");
