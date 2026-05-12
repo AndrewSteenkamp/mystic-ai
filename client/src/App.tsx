@@ -11,6 +11,7 @@ import History from "@/pages/History";
 import MatchesPage from "@/pages/Matches";
 import DatingProfilePage from "@/pages/DatingProfile";
 import ChatPage from "@/pages/Chat";
+import LifestylePage from "@/pages/Lifestyle";
 
 export default function App() {
   const { data: user } = trpc.auth.me.useQuery();
@@ -26,6 +27,7 @@ export default function App() {
     { href: "/face", label: "Face", emoji: "👤" },
     { href: "/dating", label: "Match", emoji: "💕" },
     { href: "/chat", label: "Chat", emoji: "💬" },
+    { href: "/lifestyle", label: "Life", emoji: "🌿" },
     { href: "/history", label: "History", emoji: "📜" },
   ];
 
@@ -67,6 +69,7 @@ export default function App() {
           <Route path="/dating" component={MatchesPage} />
           <Route path="/dating/profile" component={DatingProfilePage} />
           <Route path="/chat" component={ChatPage} />
+          <Route path="/lifestyle" component={LifestylePage} />
         </Switch>
       </main>
     </div>
