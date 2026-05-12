@@ -24,7 +24,7 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
   // Health check for Railway
-  app.get("/health", (_req, res) => res.json({ status: "ok", time: new Date().toISOString(), hasDeepSeek: !!process.env.DEEPSEEK_API_KEY, keyLen: (process.env.DEEPSEEK_API_KEY || "").length }));
+  app.get("/health", (_req, res) => res.json({ status: "ok", time: new Date().toISOString(), hasDeepSeek: !!process.env.DEEPSEEK_API_KEY, keyLen: (process.env.DEEPSEEK_API_KEY || "").length, buildId: "2105-may12-2" }));
 
   // Debug: show filesystem to help diagnose static file issues
   app.get("/debug-files", (_req, res) => {
