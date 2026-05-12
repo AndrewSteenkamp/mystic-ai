@@ -1,11 +1,3 @@
-let Database: any;
-try {
-  const { createRequire } = await import("module");
-  Database = createRequire(import.meta.url)("better-sqlite3");
-} catch {
-  console.warn("better-sqlite3 not available — using in-memory store");
-}
-
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -13,14 +5,26 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = path.resolve(__dirname, "..", "mystic.db");
 
 let _db: any = null;
+let _dbTried = false;
 
-export function getDb(): any {
-  if (!_db && Database) {
-    _db = new Database(DB_PATH);
+function loadDatabase() {
+  if (_dbTried) return;
+  _dbTried = true;
+  try {
+    // Dynamic require via esbuild shim
+    const SQLite = require("better-sqlite3");
+    _db = new SQLite(DB_PATH);
     _db.pragma("journal_mode = WAL");
     _db.pragma("foreign_keys = ON");
     initSchema(_db);
+  } catch (e) {
+    console.warn("better-sqlite3 not available:", e);
+    _db = null;
   }
+}
+
+export function getDb(): any {
+  loadDatabase();
   return _db;
 }
 

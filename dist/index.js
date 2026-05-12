@@ -1,5 +1,11 @@
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require !== "undefined") return require.apply(this, arguments);
+  throw Error('Dynamic require of "' + x + '" is not supported');
+});
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
@@ -28,13 +34,22 @@ __export(db_exports, {
 });
 import path from "path";
 import { fileURLToPath } from "url";
-function getDb() {
-  if (!_db && Database) {
-    _db = new Database(DB_PATH);
+function loadDatabase() {
+  if (_dbTried) return;
+  _dbTried = true;
+  try {
+    const SQLite = __require("better-sqlite3");
+    _db = new SQLite(DB_PATH);
     _db.pragma("journal_mode = WAL");
     _db.pragma("foreign_keys = ON");
     initSchema(_db);
+  } catch (e) {
+    console.warn("better-sqlite3 not available:", e);
+    _db = null;
   }
+}
+function getDb() {
+  loadDatabase();
   return _db;
 }
 function initSchema(db) {
@@ -276,19 +291,14 @@ function insertSampleProfiles() {
   }
   console.log(`[DB] Inserted ${samples.length} sample dating profiles`);
 }
-var Database, __dirname, DB_PATH, _db;
+var __dirname, DB_PATH, _db, _dbTried;
 var init_db = __esm({
-  async "server/db.ts"() {
+  "server/db.ts"() {
     "use strict";
-    try {
-      const { createRequire } = await import("module");
-      Database = createRequire(import.meta.url)("better-sqlite3");
-    } catch {
-      console.warn("better-sqlite3 not available \u2014 using in-memory store");
-    }
     __dirname = path.dirname(fileURLToPath(import.meta.url));
     DB_PATH = path.resolve(__dirname, "..", "mystic.db");
     _db = null;
+    _dbTried = false;
   }
 });
 
@@ -396,7 +406,7 @@ var adminProcedure = t.procedure.use(
 );
 
 // server/routers.ts
-await init_db();
+init_db();
 
 // server/paystack.ts
 import crypto from "node:crypto";
@@ -1809,7 +1819,7 @@ var appRouter = router({
           compatibility: score
         };
       });
-      const db_ = (await init_db().then(() => db_exports)).getDb();
+      const db_ = (await Promise.resolve().then(() => (init_db(), db_exports))).getDb();
       for (const m of matches) {
         const user = db_.prepare("SELECT name FROM users WHERE id = ?").get(m.userId);
         m.name = user?.name || "Unknown";
@@ -1844,7 +1854,7 @@ var appRouter = router({
         mars: { sign: theirProfile.mars_sign }
       };
       const score = calculateCompatibility(mySigns, theirSigns);
-      const db_ = (await init_db().then(() => db_exports)).getDb();
+      const db_ = (await Promise.resolve().then(() => (init_db(), db_exports))).getDb();
       const me = db_.prepare("SELECT name FROM users WHERE id = ?").get(ctx.user.id);
       const them = db_.prepare("SELECT name FROM users WHERE id = ?").get(input.otherUserId);
       const prompt = generateCompatibilityPrompt(
@@ -1954,7 +1964,7 @@ function serveStatic(app) {
 }
 
 // server/_core/index.ts
-await init_db();
+init_db();
 async function startServer() {
   try {
     ensureDummyUser();
