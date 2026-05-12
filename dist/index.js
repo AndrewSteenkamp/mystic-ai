@@ -2182,7 +2182,7 @@ async function startServer() {
   const server = createServer(app);
   app.use(express2.json({ limit: "50mb" }));
   app.use(express2.urlencoded({ limit: "50mb", extended: true }));
-  app.get("/health", (_req, res) => res.json({ status: "ok", time: (/* @__PURE__ */ new Date()).toISOString() }));
+  app.get("/health", (_req, res) => res.json({ status: "ok", time: (/* @__PURE__ */ new Date()).toISOString(), hasDeepSeek: !!process.env.DEEPSEEK_API_KEY, keyLen: (process.env.DEEPSEEK_API_KEY || "").length }));
   app.get("/debug-files", (_req, res) => {
     const fs2 = __require("fs");
     const path4 = __require("path");
