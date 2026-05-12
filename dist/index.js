@@ -1947,20 +1947,26 @@ async function setupVite(app, server) {
   });
 }
 function serveStatic(app) {
-  const distPath = path3.resolve(import.meta.dirname, "..", "..", "dist", "public");
-  if (!fs.existsSync(distPath)) {
-    console.error(`Could not find the build directory: ${distPath}`);
-    const altPath = path3.resolve(import.meta.dirname, "..", "..", "client");
-    if (fs.existsSync(altPath)) {
-      console.log(`Falling back to client directory: ${altPath}`);
-      app.use(express.static(altPath));
-      app.use("*", (_req, res) => res.sendFile(path3.resolve(altPath, "index.html")));
+  const candidates = [
+    path3.resolve(import.meta.dirname, "public"),
+    path3.resolve(import.meta.dirname, "..", "..", "dist", "public"),
+    path3.resolve(process.cwd(), "dist", "public")
+  ];
+  let distPath = candidates.find((p) => fs.existsSync(path3.join(p, "index.html")));
+  if (!distPath) {
+    const clientPath = path3.resolve(process.cwd(), "client");
+    if (fs.existsSync(path3.join(clientPath, "index.html"))) {
+      console.log(`Falling back to client directory: ${clientPath}`);
+      app.use(express.static(clientPath));
+      app.use("*", (_req, res) => res.sendFile(path3.join(clientPath, "index.html")));
       return;
     }
+    console.error("No static files found at any location");
+    distPath = candidates[0];
   }
   app.use(express.static(distPath));
   app.use("*", (_req, res) => {
-    res.sendFile(path3.resolve(distPath, "index.html"));
+    res.sendFile(path3.join(distPath, "index.html"));
   });
 }
 

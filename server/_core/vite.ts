@@ -50,23 +50,29 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  // In production, serve from dist/public/ relative to project root
-  const distPath = path.resolve(import.meta.dirname, "..", "..", "dist", "public");
-
-  if (!fs.existsSync(distPath)) {
-    console.error(`Could not find the build directory: ${distPath}`);
-    // Fallback: try client/ for dev-like serving
-    const altPath = path.resolve(import.meta.dirname, "..", "..", "client");
-    if (fs.existsSync(altPath)) {
-      console.log(`Falling back to client directory: ${altPath}`);
-      app.use(express.static(altPath));
-      app.use("*", (_req, res) => res.sendFile(path.resolve(altPath, "index.html")));
+  // Try multiple possible locations for the built frontend
+  const candidates = [
+    path.resolve(import.meta.dirname, "public"),
+    path.resolve(import.meta.dirname, "..", "..", "dist", "public"),
+    path.resolve(process.cwd(), "dist", "public"),
+  ];
+  let distPath = candidates.find(p => fs.existsSync(path.join(p, "index.html")));
+  
+  if (!distPath) {
+    // Fallback: serve client source directly (last resort)
+    const clientPath = path.resolve(process.cwd(), "client");
+    if (fs.existsSync(path.join(clientPath, "index.html"))) {
+      console.log(`Falling back to client directory: ${clientPath}`);
+      app.use(express.static(clientPath));
+      app.use("*", (_req, res) => res.sendFile(path.join(clientPath, "index.html")));
       return;
     }
+    console.error("No static files found at any location");
+    distPath = candidates[0]; // will 404 but won't crash
   }
 
   app.use(express.static(distPath));
   app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+    res.sendFile(path.join(distPath, "index.html"));
   });
 }
