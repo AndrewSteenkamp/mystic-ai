@@ -7,19 +7,27 @@ export async function setupVite(app: Express, server: Server) {
   // Lazy imports — only needed in dev, not available in production
   const { nanoid } = await import("nanoid");
   const { createServer: createViteServer } = await import("vite");
-  const viteConfig = (await import("../../vite.config")).default;
+  const react = await import("@vitejs/plugin-react");
+  const tailwindcss = await import("@tailwindcss/vite");
 
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true as const,
-  };
-
+  // Inline config instead of importing vite.config.ts (which bundles devDeps into dist)
   const vite = await createViteServer({
-    ...viteConfig,
     configFile: false,
-    server: serverOptions,
-    appType: "custom",
+    plugins: [react.default(), tailwindcss.default()],
+    resolve: {
+      alias: {
+        "@": path.resolve(import.meta.dirname, "..", "client", "src"),
+        "@shared": path.resolve(import.meta.dirname, "..", "shared"),
+      },
+    },
+    root: path.resolve(import.meta.dirname, "..", "client"),
+    server: {
+      host: true,
+      allowedHosts: ["localhost", "127.0.0.1"],
+      middlewareMode: true,
+      hmr: { server },
+    },
+    appType: "custom" as const,
   });
 
   app.use(vite.middlewares);
@@ -48,7 +56,6 @@ export function serveStatic(app: Express) {
       res.sendFile(indexPath);
     });
   } else {
-    // Fallback to client/ source
     const clientPath = path.resolve(process.cwd(), "client");
     app.use(express.static(clientPath));
     app.use("*", (_req, res) => {

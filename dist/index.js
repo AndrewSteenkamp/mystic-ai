@@ -396,41 +396,6 @@ var init_db = __esm({
   }
 });
 
-// vite.config.ts
-var vite_config_exports = {};
-__export(vite_config_exports, {
-  default: () => vite_config_default
-});
-import tailwindcss from "@tailwindcss/vite";
-import react from "@vitejs/plugin-react";
-import path2 from "node:path";
-import { defineConfig } from "vite";
-var vite_config_default;
-var init_vite_config = __esm({
-  "vite.config.ts"() {
-    "use strict";
-    vite_config_default = defineConfig({
-      plugins: [react(), tailwindcss()],
-      resolve: {
-        alias: {
-          "@": path2.resolve(import.meta.dirname, "client", "src"),
-          "@shared": path2.resolve(import.meta.dirname, "shared")
-        }
-      },
-      root: path2.resolve(import.meta.dirname, "client"),
-      publicDir: path2.resolve(import.meta.dirname, "client", "public"),
-      build: {
-        outDir: path2.resolve(import.meta.dirname, "dist/public"),
-        emptyOutDir: true
-      },
-      server: {
-        host: true,
-        allowedHosts: ["localhost", "127.0.0.1"]
-      }
-    });
-  }
-});
-
 // server/_core/index.ts
 import "dotenv/config";
 import express2 from "express";
@@ -525,9 +490,9 @@ var PaystackError = class extends Error {
     this.name = "PaystackError";
   }
 };
-async function paystackFetch(path4, options = {}) {
+async function paystackFetch(path3, options = {}) {
   const { secretKey } = getConfig();
-  const url = `${PAYSTACK_BASE}${path4}`;
+  const url = `${PAYSTACK_BASE}${path3}`;
   const headers = {
     Authorization: `Bearer ${secretKey}`,
     "Content-Type": "application/json",
@@ -2121,27 +2086,35 @@ async function createContext(opts) {
 // server/_core/vite.ts
 import express from "express";
 import fs from "fs";
-import path3 from "path";
+import path2 from "path";
 async function setupVite(app, server) {
   const { nanoid } = await import("nanoid");
   const { createServer: createViteServer } = await import("vite");
-  const viteConfig = (await Promise.resolve().then(() => (init_vite_config(), vite_config_exports))).default;
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true
-  };
+  const react = await import("@vitejs/plugin-react");
+  const tailwindcss = await import("@tailwindcss/vite");
   const vite = await createViteServer({
-    ...viteConfig,
     configFile: false,
-    server: serverOptions,
+    plugins: [react.default(), tailwindcss.default()],
+    resolve: {
+      alias: {
+        "@": path2.resolve(import.meta.dirname, "..", "client", "src"),
+        "@shared": path2.resolve(import.meta.dirname, "..", "shared")
+      }
+    },
+    root: path2.resolve(import.meta.dirname, "..", "client"),
+    server: {
+      host: true,
+      allowedHosts: ["localhost", "127.0.0.1"],
+      middlewareMode: true,
+      hmr: { server }
+    },
     appType: "custom"
   });
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path3.resolve(import.meta.dirname, "../..", "client", "index.html");
+      const clientTemplate = path2.resolve(import.meta.dirname, "../..", "client", "index.html");
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(`src="/src/main.tsx"`, `src="/src/main.tsx?v=${nanoid()}"`);
       const page = await vite.transformIndexHtml(url, template);
@@ -2153,18 +2126,18 @@ async function setupVite(app, server) {
   });
 }
 function serveStatic(app) {
-  const distPath = path3.resolve(process.cwd(), "dist", "public");
-  const indexPath = path3.join(distPath, "index.html");
+  const distPath = path2.resolve(process.cwd(), "dist", "public");
+  const indexPath = path2.join(distPath, "index.html");
   if (fs.existsSync(indexPath)) {
     app.use(express.static(distPath));
     app.use("*", (_req, res) => {
       res.sendFile(indexPath);
     });
   } else {
-    const clientPath = path3.resolve(process.cwd(), "client");
+    const clientPath = path2.resolve(process.cwd(), "client");
     app.use(express.static(clientPath));
     app.use("*", (_req, res) => {
-      res.sendFile(path3.join(clientPath, "index.html"));
+      res.sendFile(path2.join(clientPath, "index.html"));
     });
   }
 }
@@ -2185,14 +2158,14 @@ async function startServer() {
   app.get("/health", (_req, res) => res.json({ status: "ok", time: (/* @__PURE__ */ new Date()).toISOString(), hasDeepSeek: !!process.env.DEEPSEEK_API_KEY, keyLen: (process.env.DEEPSEEK_API_KEY || "").length, buildId: "2105-may12-2" }));
   app.get("/debug-files", (_req, res) => {
     const fs2 = __require("fs");
-    const path4 = __require("path");
+    const path3 = __require("path");
     const cwd = process.cwd();
     const files = [];
     function walk(dir, depth) {
       if (depth > 3) return;
       try {
         for (const entry of fs2.readdirSync(dir)) {
-          const full = path4.join(dir, entry);
+          const full = path3.join(dir, entry);
           files.push(full.replace(cwd, ""));
           if (fs2.statSync(full).isDirectory() && depth < 3) walk(full, depth + 1);
         }
