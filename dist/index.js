@@ -1937,12 +1937,17 @@ function serveStatic(app) {
 // server/_core/index.ts
 init_db();
 async function startServer() {
-  ensureDummyUser();
-  insertSampleProfiles();
+  try {
+    ensureDummyUser();
+    insertSampleProfiles();
+  } catch (e) {
+    console.error("DB init failed (non-fatal):", e);
+  }
   const app = express2();
   const server = createServer(app);
   app.use(express2.json({ limit: "50mb" }));
   app.use(express2.urlencoded({ limit: "50mb", extended: true }));
+  app.get("/health", (_req, res) => res.json({ status: "ok", time: (/* @__PURE__ */ new Date()).toISOString() }));
   app.use(
     "/api/trpc",
     createExpressMiddleware({

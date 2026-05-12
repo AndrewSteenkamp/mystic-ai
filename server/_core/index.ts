@@ -8,10 +8,13 @@ import { serveStatic, setupVite } from "./vite";
 import { ensureDummyUser, insertSampleProfiles } from "../db";
 
 async function startServer() {
-  // Ensure dummy user exists for standalone mode
-  ensureDummyUser();
-  // Insert sample dating profiles for testing
-  insertSampleProfiles();
+  // Ensure dummy user exists for standalone mode (non-fatal if DB fails)
+  try {
+    ensureDummyUser();
+    insertSampleProfiles();
+  } catch (e) {
+    console.error("DB init failed (non-fatal):", e);
+  }
 
   const app = express();
   const server = createServer(app);
@@ -19,6 +22,9 @@ async function startServer() {
   // Body parser
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // Health check for Railway
+  app.get("/health", (_req, res) => res.json({ status: "ok", time: new Date().toISOString() }));
 
   // tRPC API
   app.use(
