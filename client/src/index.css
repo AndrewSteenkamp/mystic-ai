@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* Mystic AI theme overrides */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.glass-card {
+  background: rgba(30, 10, 60, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+/* Animated gradient for mystic feel */
+.mystic-gradient {
+  background: linear-gradient(135deg, #1a0a2e 0%, #2d1b69 25%, #1a0a2e 50%, #4c1d95 75%, #1a0a2e 100%);
+  background-size: 400% 400%;
+}
+
+/* Pulse animation for loading */
+@keyframes pulse-mystic {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-pulse-mystic {
+  animation: pulse-mystic 2s ease-in-out infinite;
+}
+
+/* Shimmer text */
+.text-shimmer {
+  background: linear-gradient(90deg, #c084fc, #f472b6, #c084fc);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+
+/* Float animation for hero icon */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
