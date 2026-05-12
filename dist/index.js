@@ -292,6 +292,41 @@ var init_db = __esm({
   }
 });
 
+// vite.config.ts
+var vite_config_exports = {};
+__export(vite_config_exports, {
+  default: () => vite_config_default
+});
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import path2 from "node:path";
+import { defineConfig } from "vite";
+var vite_config_default;
+var init_vite_config = __esm({
+  "vite.config.ts"() {
+    "use strict";
+    vite_config_default = defineConfig({
+      plugins: [react(), tailwindcss()],
+      resolve: {
+        alias: {
+          "@": path2.resolve(import.meta.dirname, "client", "src"),
+          "@shared": path2.resolve(import.meta.dirname, "shared")
+        }
+      },
+      root: path2.resolve(import.meta.dirname, "client"),
+      publicDir: path2.resolve(import.meta.dirname, "client", "public"),
+      build: {
+        outDir: path2.resolve(import.meta.dirname, "dist/public"),
+        emptyOutDir: true
+      },
+      server: {
+        host: true,
+        allowedHosts: ["localhost", "127.0.0.1"]
+      }
+    });
+  }
+});
+
 // server/_core/index.ts
 import "dotenv/config";
 import express2 from "express";
@@ -1861,44 +1896,18 @@ async function createContext(opts) {
 // server/_core/vite.ts
 import express from "express";
 import fs from "fs";
-import { nanoid } from "nanoid";
 import path3 from "path";
-import { createServer as createViteServer } from "vite";
-
-// vite.config.ts
-import tailwindcss from "@tailwindcss/vite";
-import react from "@vitejs/plugin-react";
-import path2 from "node:path";
-import { defineConfig } from "vite";
-var vite_config_default = defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      "@": path2.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path2.resolve(import.meta.dirname, "shared")
-    }
-  },
-  root: path2.resolve(import.meta.dirname, "client"),
-  publicDir: path2.resolve(import.meta.dirname, "client", "public"),
-  build: {
-    outDir: path2.resolve(import.meta.dirname, "dist/public"),
-    emptyOutDir: true
-  },
-  server: {
-    host: true,
-    allowedHosts: ["localhost", "127.0.0.1"]
-  }
-});
-
-// server/_core/vite.ts
 async function setupVite(app, server) {
+  const { nanoid } = await import("nanoid");
+  const { createServer: createViteServer } = await import("vite");
+  const viteConfig = (await Promise.resolve().then(() => (init_vite_config(), vite_config_exports))).default;
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
     allowedHosts: true
   };
   const vite = await createViteServer({
-    ...vite_config_default,
+    ...viteConfig,
     configFile: false,
     server: serverOptions,
     appType: "custom"
@@ -1927,11 +1936,16 @@ async function setupVite(app, server) {
   });
 }
 function serveStatic(app) {
-  const distPath = process.env.NODE_ENV === "development" ? path3.resolve(import.meta.dirname, "../..", "dist", "public") : path3.resolve(import.meta.dirname, "public");
+  const distPath = path3.resolve(import.meta.dirname, "..", "..", "dist", "public");
   if (!fs.existsSync(distPath)) {
-    console.error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
-    );
+    console.error(`Could not find the build directory: ${distPath}`);
+    const altPath = path3.resolve(import.meta.dirname, "..", "..", "client");
+    if (fs.existsSync(altPath)) {
+      console.log(`Falling back to client directory: ${altPath}`);
+      app.use(express.static(altPath));
+      app.use("*", (_req, res) => res.sendFile(path3.resolve(altPath, "index.html")));
+      return;
+    }
   }
   app.use(express.static(distPath));
   app.use("*", (_req, res) => {
