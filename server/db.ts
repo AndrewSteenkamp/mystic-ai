@@ -106,6 +106,38 @@ function initSchema(db: Database.Database) {
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sender_id INTEGER NOT NULL,
+      receiver_id INTEGER NOT NULL,
+      content TEXT NOT NULL,
+      read INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (sender_id) REFERENCES users(id),
+      FOREIGN KEY (receiver_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS lifestyle_journals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      entry_type TEXT DEFAULT 'journal',
+      title TEXT,
+      content TEXT NOT NULL,
+      mood TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS diet_plans (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      plan_type TEXT NOT NULL,
+      meals TEXT,
+      calories INTEGER,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
   `);
 }
 
@@ -313,4 +345,73 @@ export function insertSampleProfiles() {
     }
   }
   console.log(`[DB] Inserted ${samples.length} sample dating profiles`);
+}
+
+// ============================================================
+// MESSAGING
+// ============================================================
+
+export function sendMessage(senderId: number, receiverId: number, content: string) {
+  const db = getDb();
+  if (!db) return null;
+  return db.prepare("INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)").run(senderId, receiverId, content);
+}
+
+export function getConversations(userId: number) {
+  const db = getDb();
+  if (!db) return [];
+  return db.prepare(`
+    SELECT DISTINCT 
+      CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END as other_id,
+      u.name as other_name,
+      (SELECT content FROM messages WHERE (sender_id = ? AND receiver_id = other_id) OR (sender_id = other_id AND receiver_id = ?) ORDER BY created_at DESC LIMIT 1) as last_message,
+      (SELECT created_at FROM messages WHERE (sender_id = ? AND receiver_id = other_id) OR (sender_id = other_id AND receiver_id = ?) ORDER BY created_at DESC LIMIT 1) as last_time
+    FROM messages m
+    JOIN users u ON u.id = CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END
+    WHERE m.sender_id = ? OR m.receiver_id = ?
+  `).all(userId, userId, userId, userId, userId, userId, userId);
+}
+
+export function getMessages(userId: number, otherUserId: number, limit = 50) {
+  const db = getDb();
+  if (!db) return [];
+  return db.prepare(`
+    SELECT * FROM messages 
+    WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+    ORDER BY created_at ASC LIMIT ?
+  `).all(userId, otherUserId, otherUserId, userId, limit);
+}
+
+export function markMessagesRead(userId: number, otherUserId: number) {
+  const db = getDb();
+  if (!db) return;
+  db.prepare("UPDATE messages SET read = 1 WHERE sender_id = ? AND receiver_id = ? AND read = 0").run(otherUserId, userId);
+}
+
+// ============================================================
+// LIFESTYLE
+// ============================================================
+
+export function saveJournalEntry(userId: number, title: string, content: string, mood?: string) {
+  const db = getDb();
+  if (!db) return null;
+  return db.prepare("INSERT INTO lifestyle_journals (user_id, title, content, mood) VALUES (?, ?, ?, ?)").run(userId, title, content, mood || null);
+}
+
+export function getJournalEntries(userId: number, limit = 20) {
+  const db = getDb();
+  if (!db) return [];
+  return db.prepare("SELECT * FROM lifestyle_journals WHERE user_id = ? ORDER BY created_at DESC LIMIT ?").all(userId, limit);
+}
+
+export function saveDietPlan(userId: number, planType: string, meals: string, calories?: number) {
+  const db = getDb();
+  if (!db) return null;
+  return db.prepare("INSERT INTO diet_plans (user_id, plan_type, meals, calories) VALUES (?, ?, ?, ?)").run(userId, planType, meals, calories || null);
+}
+
+export function getDietPlans(userId: number) {
+  const db = getDb();
+  if (!db) return [];
+  return db.prepare("SELECT * FROM diet_plans WHERE user_id = ? ORDER BY created_at DESC").all(userId);
 }

@@ -3,6 +3,13 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import * as db from "./db";
+import { sendMessage, getConversations, getMessages, markMessagesRead } from "./db";
+import {
+  saveJournalEntry,
+  getJournalEntries,
+  saveDietPlan,
+  getDietPlans,
+} from "./db";
 import {
   initializePaystackTransaction,
   verifyPaystackTransaction,
@@ -511,6 +518,144 @@ export const appRouter = router({
         db.setProfileActive(ctx.user.id, input.active);
         return { success: true, active: input.active };
       }),
+
+    // ---- Messaging ----
+
+    sendMessage: protectedProcedure
+      .input(z.object({ otherUserId: z.number(), content: z.string().min(1) }))
+      .mutation(async ({ input, ctx }) => {
+        const result = db.sendMessage(ctx.user.id, input.otherUserId, input.content);
+        if (!result) return { success: false, error: "Database unavailable" };
+        return { success: true };
+      }),
+
+    conversations: protectedProcedure.query(async ({ ctx }) => {
+      return db.getConversations(ctx.user.id) || [];
+    }),
+
+    messages: protectedProcedure
+      .input(z.object({ otherUserId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const msgs = db.getMessages(ctx.user.id, input.otherUserId);
+        db.markMessagesRead(ctx.user.id, input.otherUserId);
+        return msgs || [];
+      }),
+
+    unreadCount: protectedProcedure.query(async ({ ctx }) => {
+      const database = db.getDb();
+      if (!database) return { count: 0 };
+      const row = database.prepare(
+        "SELECT COUNT(*) as count FROM messages WHERE receiver_id = ? AND read = 0"
+      ).get(ctx.user.id) as any;
+      return { count: row?.count || 0 };
+    }),
+  }),
+
+  // ============= LIFESTYLE =============
+  lifestyle: router({
+    journalEntries: protectedProcedure.query(async ({ ctx }) => {
+      return getJournalEntries(ctx.user.id);
+    }),
+
+    saveJournal: protectedProcedure
+      .input(z.object({
+        title: z.string(),
+        content: z.string(),
+        mood: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        saveJournalEntry(ctx.user.id, input.title, input.content, input.mood);
+        return { success: true };
+      }),
+
+    dietPlans: protectedProcedure.query(async ({ ctx }) => {
+      return getDietPlans(ctx.user.id);
+    }),
+
+    saveDietPlan: protectedProcedure
+      .input(z.object({
+        planType: z.string(),
+        meals: z.string(),
+        calories: z.number().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        saveDietPlan(ctx.user.id, input.planType, input.meals, input.calories);
+        return { success: true };
+      }),
+
+    meditationGuide: publicProcedure.query(async () => {
+      return [
+        {
+          title: "Morning Mindfulness",
+          description: "Start your day with clarity and intention through this gentle awakening practice.",
+          duration: "10 min",
+          steps: [
+            "Find a comfortable seated position",
+            "Close your eyes and take three deep breaths",
+            "Scan your body from head to toe, releasing tension",
+            "Set an intention for the day ahead",
+            "Visualize yourself moving through the day with ease",
+          ],
+        },
+        {
+          title: "Chakra Balancing",
+          description: "Align and harmonize your seven energy centers for spiritual equilibrium.",
+          duration: "20 min",
+          steps: [
+            "Lie down in a quiet space",
+            "Begin at the root chakra — visualize a red glow at the base of your spine",
+            "Move to the sacral chakra — orange glow below your navel",
+            "Solar plexus — yellow flame at your core",
+            "Heart chakra — green light expanding from your chest",
+            "Throat chakra — blue light at your throat",
+            "Third eye — indigo light between your eyebrows",
+            "Crown chakra — violet light above your head",
+          ],
+        },
+        {
+          title: "Loving-Kindness (Metta)",
+          description: "Cultivate compassion for yourself and all beings through this heart-opening meditation.",
+          duration: "15 min",
+          steps: [
+            "Sit comfortably and close your eyes",
+            "Direct loving-kindness toward yourself: 'May I be happy, may I be safe, may I be at peace'",
+            "Extend to a loved one: 'May you be happy, may you be safe, may you be at peace'",
+            "Extend to a neutral person",
+            "Extend to someone you have difficulty with",
+            "Finally, extend to all beings everywhere",
+          ],
+        },
+        {
+          title: "Body Scan Relaxation",
+          description: "Release physical tension and connect deeply with your body's wisdom.",
+          duration: "20 min",
+          steps: [
+            "Lie flat on your back, arms at your sides",
+            "Bring attention to your feet — notice any sensations",
+            "Slowly move attention up through your ankles, calves, and knees",
+            "Continue through thighs, hips, and lower back",
+            "Scan through your abdomen and chest",
+            "Move through shoulders, arms, and hands",
+            "Finish with neck, face, and scalp",
+            "Rest in full-body awareness for several breaths",
+          ],
+        },
+        {
+          title: "Starlight Connection",
+          description: "Connect with the cosmic energy of the universe through stellar visualization.",
+          duration: "12 min",
+          steps: [
+            "Go outside under the night sky or visualize a starry expanse",
+            "Gaze softly at the stars or close your eyes",
+            "Imagine a thread of starlight descending toward you",
+            "Feel the light entering through the crown of your head",
+            "Let it fill your entire being with cosmic wisdom",
+            "Feel your connection to all of existence",
+            "Slowly return, carrying the starlight within you",
+          ],
+        },
+      ];
+    }),
   }),
 });
 

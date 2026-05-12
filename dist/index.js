@@ -21,16 +21,24 @@ __export(db_exports, {
   countTodayReadings: () => countTodayReadings,
   ensureDummyUser: () => ensureDummyUser,
   getCompatibleProfiles: () => getCompatibleProfiles,
+  getConversations: () => getConversations,
   getDatingProfile: () => getDatingProfile,
   getDb: () => getDb,
+  getDietPlans: () => getDietPlans,
+  getJournalEntries: () => getJournalEntries,
+  getMessages: () => getMessages,
   getReadingCredits: () => getReadingCredits,
   getUserReadings: () => getUserReadings,
   getUserSubscription: () => getUserSubscription,
   incrementReadingCredits: () => incrementReadingCredits,
   insertSampleProfiles: () => insertSampleProfiles,
+  markMessagesRead: () => markMessagesRead,
   saveDatingProfile: () => saveDatingProfile,
+  saveDietPlan: () => saveDietPlan,
   saveDivinationReading: () => saveDivinationReading,
+  saveJournalEntry: () => saveJournalEntry,
   saveUserSubscription: () => saveUserSubscription,
+  sendMessage: () => sendMessage,
   setProfileActive: () => setProfileActive
 });
 import path from "path";
@@ -129,6 +137,38 @@ function initSchema(db) {
       is_active INTEGER DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sender_id INTEGER NOT NULL,
+      receiver_id INTEGER NOT NULL,
+      content TEXT NOT NULL,
+      read INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (sender_id) REFERENCES users(id),
+      FOREIGN KEY (receiver_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS lifestyle_journals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      entry_type TEXT DEFAULT 'journal',
+      title TEXT,
+      content TEXT NOT NULL,
+      mood TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS diet_plans (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      plan_type TEXT NOT NULL,
+      meals TEXT,
+      calories INTEGER,
+      created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
   `);
@@ -292,6 +332,59 @@ function insertSampleProfiles() {
   }
   console.log(`[DB] Inserted ${samples.length} sample dating profiles`);
 }
+function sendMessage(senderId, receiverId, content) {
+  const db = getDb();
+  if (!db) return null;
+  return db.prepare("INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)").run(senderId, receiverId, content);
+}
+function getConversations(userId) {
+  const db = getDb();
+  if (!db) return [];
+  return db.prepare(`
+    SELECT DISTINCT 
+      CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END as other_id,
+      u.name as other_name,
+      (SELECT content FROM messages WHERE (sender_id = ? AND receiver_id = other_id) OR (sender_id = other_id AND receiver_id = ?) ORDER BY created_at DESC LIMIT 1) as last_message,
+      (SELECT created_at FROM messages WHERE (sender_id = ? AND receiver_id = other_id) OR (sender_id = other_id AND receiver_id = ?) ORDER BY created_at DESC LIMIT 1) as last_time
+    FROM messages m
+    JOIN users u ON u.id = CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END
+    WHERE m.sender_id = ? OR m.receiver_id = ?
+  `).all(userId, userId, userId, userId, userId, userId, userId);
+}
+function getMessages(userId, otherUserId, limit = 50) {
+  const db = getDb();
+  if (!db) return [];
+  return db.prepare(`
+    SELECT * FROM messages 
+    WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
+    ORDER BY created_at ASC LIMIT ?
+  `).all(userId, otherUserId, otherUserId, userId, limit);
+}
+function markMessagesRead(userId, otherUserId) {
+  const db = getDb();
+  if (!db) return;
+  db.prepare("UPDATE messages SET read = 1 WHERE sender_id = ? AND receiver_id = ? AND read = 0").run(otherUserId, userId);
+}
+function saveJournalEntry(userId, title, content, mood) {
+  const db = getDb();
+  if (!db) return null;
+  return db.prepare("INSERT INTO lifestyle_journals (user_id, title, content, mood) VALUES (?, ?, ?, ?)").run(userId, title, content, mood || null);
+}
+function getJournalEntries(userId, limit = 20) {
+  const db = getDb();
+  if (!db) return [];
+  return db.prepare("SELECT * FROM lifestyle_journals WHERE user_id = ? ORDER BY created_at DESC LIMIT ?").all(userId, limit);
+}
+function saveDietPlan(userId, planType, meals, calories) {
+  const db = getDb();
+  if (!db) return null;
+  return db.prepare("INSERT INTO diet_plans (user_id, plan_type, meals, calories) VALUES (?, ?, ?, ?)").run(userId, planType, meals, calories || null);
+}
+function getDietPlans(userId) {
+  const db = getDb();
+  if (!db) return [];
+  return db.prepare("SELECT * FROM diet_plans WHERE user_id = ? ORDER BY created_at DESC").all(userId);
+}
 var __dirname, DB_PATH, _db, _dbTried;
 var init_db = __esm({
   "server/db.ts"() {
@@ -407,6 +500,7 @@ var adminProcedure = t.procedure.use(
 );
 
 // server/routers.ts
+init_db();
 init_db();
 
 // server/paystack.ts
@@ -1872,6 +1966,126 @@ var appRouter = router({
     toggleActive: protectedProcedure.input(z.object({ active: z.boolean() })).mutation(async ({ input, ctx }) => {
       setProfileActive(ctx.user.id, input.active);
       return { success: true, active: input.active };
+    }),
+    // ---- Messaging ----
+    sendMessage: protectedProcedure.input(z.object({ otherUserId: z.number(), content: z.string().min(1) })).mutation(async ({ input, ctx }) => {
+      const result = sendMessage(ctx.user.id, input.otherUserId, input.content);
+      if (!result) return { success: false, error: "Database unavailable" };
+      return { success: true };
+    }),
+    conversations: protectedProcedure.query(async ({ ctx }) => {
+      return getConversations(ctx.user.id) || [];
+    }),
+    messages: protectedProcedure.input(z.object({ otherUserId: z.number() })).query(async ({ input, ctx }) => {
+      const msgs = getMessages(ctx.user.id, input.otherUserId);
+      markMessagesRead(ctx.user.id, input.otherUserId);
+      return msgs || [];
+    }),
+    unreadCount: protectedProcedure.query(async ({ ctx }) => {
+      const database = getDb();
+      if (!database) return { count: 0 };
+      const row = database.prepare(
+        "SELECT COUNT(*) as count FROM messages WHERE receiver_id = ? AND read = 0"
+      ).get(ctx.user.id);
+      return { count: row?.count || 0 };
+    })
+  }),
+  // ============= LIFESTYLE =============
+  lifestyle: router({
+    journalEntries: protectedProcedure.query(async ({ ctx }) => {
+      return getJournalEntries(ctx.user.id);
+    }),
+    saveJournal: protectedProcedure.input(z.object({
+      title: z.string(),
+      content: z.string(),
+      mood: z.string().optional()
+    })).mutation(async ({ input, ctx }) => {
+      saveJournalEntry(ctx.user.id, input.title, input.content, input.mood);
+      return { success: true };
+    }),
+    dietPlans: protectedProcedure.query(async ({ ctx }) => {
+      return getDietPlans(ctx.user.id);
+    }),
+    saveDietPlan: protectedProcedure.input(z.object({
+      planType: z.string(),
+      meals: z.string(),
+      calories: z.number().optional()
+    })).mutation(async ({ input, ctx }) => {
+      saveDietPlan(ctx.user.id, input.planType, input.meals, input.calories);
+      return { success: true };
+    }),
+    meditationGuide: publicProcedure.query(async () => {
+      return [
+        {
+          title: "Morning Mindfulness",
+          description: "Start your day with clarity and intention through this gentle awakening practice.",
+          duration: "10 min",
+          steps: [
+            "Find a comfortable seated position",
+            "Close your eyes and take three deep breaths",
+            "Scan your body from head to toe, releasing tension",
+            "Set an intention for the day ahead",
+            "Visualize yourself moving through the day with ease"
+          ]
+        },
+        {
+          title: "Chakra Balancing",
+          description: "Align and harmonize your seven energy centers for spiritual equilibrium.",
+          duration: "20 min",
+          steps: [
+            "Lie down in a quiet space",
+            "Begin at the root chakra \u2014 visualize a red glow at the base of your spine",
+            "Move to the sacral chakra \u2014 orange glow below your navel",
+            "Solar plexus \u2014 yellow flame at your core",
+            "Heart chakra \u2014 green light expanding from your chest",
+            "Throat chakra \u2014 blue light at your throat",
+            "Third eye \u2014 indigo light between your eyebrows",
+            "Crown chakra \u2014 violet light above your head"
+          ]
+        },
+        {
+          title: "Loving-Kindness (Metta)",
+          description: "Cultivate compassion for yourself and all beings through this heart-opening meditation.",
+          duration: "15 min",
+          steps: [
+            "Sit comfortably and close your eyes",
+            "Direct loving-kindness toward yourself: 'May I be happy, may I be safe, may I be at peace'",
+            "Extend to a loved one: 'May you be happy, may you be safe, may you be at peace'",
+            "Extend to a neutral person",
+            "Extend to someone you have difficulty with",
+            "Finally, extend to all beings everywhere"
+          ]
+        },
+        {
+          title: "Body Scan Relaxation",
+          description: "Release physical tension and connect deeply with your body's wisdom.",
+          duration: "20 min",
+          steps: [
+            "Lie flat on your back, arms at your sides",
+            "Bring attention to your feet \u2014 notice any sensations",
+            "Slowly move attention up through your ankles, calves, and knees",
+            "Continue through thighs, hips, and lower back",
+            "Scan through your abdomen and chest",
+            "Move through shoulders, arms, and hands",
+            "Finish with neck, face, and scalp",
+            "Rest in full-body awareness for several breaths"
+          ]
+        },
+        {
+          title: "Starlight Connection",
+          description: "Connect with the cosmic energy of the universe through stellar visualization.",
+          duration: "12 min",
+          steps: [
+            "Go outside under the night sky or visualize a starry expanse",
+            "Gaze softly at the stars or close your eyes",
+            "Imagine a thread of starlight descending toward you",
+            "Feel the light entering through the crown of your head",
+            "Let it fill your entire being with cosmic wisdom",
+            "Feel your connection to all of existence",
+            "Slowly return, carrying the starlight within you"
+          ]
+        }
+      ];
     })
   })
 });

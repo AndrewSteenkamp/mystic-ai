@@ -1,1 +1,11 @@
-node_modules/\ndist/\n.env\n*.db\n*.db-shm\n*.db-wal
+node_modules/
+dist/
+.env
+*.db
+*.db-shm
+*.db-wal
+android/app/build/
+android/build/
+android/.gradle/
+*.keystore
+.capacitor/
