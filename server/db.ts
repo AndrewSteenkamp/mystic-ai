@@ -1,6 +1,7 @@
 let Database: any;
 try {
-  Database = require("better-sqlite3");
+  const { createRequire } = await import("module");
+  Database = createRequire(import.meta.url)("better-sqlite3");
 } catch {
   console.warn("better-sqlite3 not available — using in-memory store");
 }

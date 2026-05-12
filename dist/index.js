@@ -1,11 +1,5 @@
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-}) : x)(function(x) {
-  if (typeof require !== "undefined") return require.apply(this, arguments);
-  throw Error('Dynamic require of "' + x + '" is not supported');
-});
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
 };
@@ -284,10 +278,11 @@ function insertSampleProfiles() {
 }
 var Database, __dirname, DB_PATH, _db;
 var init_db = __esm({
-  "server/db.ts"() {
+  async "server/db.ts"() {
     "use strict";
     try {
-      Database = __require("better-sqlite3");
+      const { createRequire } = await import("module");
+      Database = createRequire(import.meta.url)("better-sqlite3");
     } catch {
       console.warn("better-sqlite3 not available \u2014 using in-memory store");
     }
@@ -366,7 +361,7 @@ var adminProcedure = t.procedure.use(
 );
 
 // server/routers.ts
-init_db();
+await init_db();
 
 // server/paystack.ts
 import crypto from "node:crypto";
@@ -1779,7 +1774,7 @@ var appRouter = router({
           compatibility: score
         };
       });
-      const db_ = (await Promise.resolve().then(() => (init_db(), db_exports))).getDb();
+      const db_ = (await init_db().then(() => db_exports)).getDb();
       for (const m of matches) {
         const user = db_.prepare("SELECT name FROM users WHERE id = ?").get(m.userId);
         m.name = user?.name || "Unknown";
@@ -1814,7 +1809,7 @@ var appRouter = router({
         mars: { sign: theirProfile.mars_sign }
       };
       const score = calculateCompatibility(mySigns, theirSigns);
-      const db_ = (await Promise.resolve().then(() => (init_db(), db_exports))).getDb();
+      const db_ = (await init_db().then(() => db_exports)).getDb();
       const me = db_.prepare("SELECT name FROM users WHERE id = ?").get(ctx.user.id);
       const them = db_.prepare("SELECT name FROM users WHERE id = ?").get(input.otherUserId);
       const prompt = generateCompatibilityPrompt(
@@ -1945,7 +1940,7 @@ function serveStatic(app) {
 }
 
 // server/_core/index.ts
-init_db();
+await init_db();
 async function startServer() {
   try {
     ensureDummyUser();
