@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { BookOpen, Utensils, Sparkles, Save, ShoppingBag, ExternalLink } from "lucide-react";
+import { BookOpen, Utensils, Sparkles, Save, ShoppingBag, ExternalLink, Heart } from "lucide-react";
 
 const TABS = [
   { key: "journal", label: "Journal", icon: BookOpen },
