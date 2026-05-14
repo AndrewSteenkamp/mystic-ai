@@ -25,6 +25,7 @@ import { analyzePalmImage } from "./divination/palm";
 import { analyzeFaceImage } from "./divination/face";
 import { generateAstrologyReading } from "./divination/astrology";
 import { calculateCompatibility, generateCompatibilityPrompt } from "./divination/compatibility";
+import { scanMessage, checkAstroCompatibility } from "./safety";
 
 // ---- LLM Helper ----
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
@@ -524,9 +525,13 @@ export const appRouter = router({
     sendMessage: protectedProcedure
       .input(z.object({ otherUserId: z.number(), content: z.string().min(1) }))
       .mutation(async ({ input, ctx }) => {
-        const result = db.sendMessage(ctx.user.id, input.otherUserId, input.content);
+        const safetyResult = scanMessage(input.content);
+        if (safetyResult.riskLevel === "critical") {
+          return { success: false, blocked: true, reason: safetyResult.flags[0]?.reason || "Blocked" };
+        }
+        const result = db.sendMessage(ctx.user.id, input.otherUserId, safetyResult.message);
         if (!result) return { success: false, error: "Database unavailable" };
-        return { success: true };
+        return { success: true, scanned: safetyResult.flags.length > 0 };
       }),
 
     conversations: protectedProcedure.query(async ({ ctx }) => {
@@ -549,6 +554,26 @@ export const appRouter = router({
       ).get(ctx.user.id) as any;
       return { count: row?.count || 0 };
     }),
+
+    blockUser: protectedProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const d = db.getDb(); if (!d) return { success: false };
+        d.prepare("INSERT OR IGNORE INTO blocked_users (blocker_id, blocked_id) VALUES (?,?)").run(ctx.user.id, input.userId);
+        d.prepare("DELETE FROM messages WHERE (sender_id=? AND receiver_id=?) OR (sender_id=? AND receiver_id=?)").run(ctx.user.id, input.userId, input.userId, ctx.user.id);
+        return { success: true };
+      }),
+
+    reportUser: protectedProcedure
+      .input(z.object({ userId: z.number(), reason: z.string().min(3), category: z.enum(["harassment","scam","explicit","fake","other"]) }))
+      .mutation(async ({ input, ctx }) => {
+        const d = db.getDb(); if (!d) return { success: false };
+        d.prepare("INSERT INTO reports (reporter_id, reported_id, reason, category, created_at) VALUES (?,?,?,?,datetime('now'))").run(ctx.user.id, input.userId, input.reason, input.category);
+        d.prepare("INSERT OR IGNORE INTO blocked_users (blocker_id, blocked_id) VALUES (?,?)").run(ctx.user.id, input.userId);
+        return { success: true };
+      }),
+
+    safetyCenter: protectedProcedure.query(() => ({ tips: getSafetyTips() })),
   }),
 
   // ============= LIFESTYLE =============
@@ -674,4 +699,14 @@ async function checkReadingQuota(userId: number): Promise<boolean> {
 
   const todayReadings = await db.countTodayReadings(userId);
   return todayReadings < 1; // 1 free reading per day
+}
+
+function getSafetyTips() {
+  return [
+    { title: "Keep conversations in-app", body: "Never share phone, WhatsApp, or social handles. Scammers push to move off-platform fast." },
+    { title: "Watch for money requests", body: "Anyone asking for money, crypto, or gift cards is a scammer. Report immediately." },
+    { title: "Video chat before meeting", body: "Always video call before meeting in person. If they resist, it's a red flag." },
+    { title: "Meet in public places", body: "First meetings in busy public spaces. Tell a friend your plans." },
+    { title: "Trust your intuition", body: "If something feels off, block and report instantly — no explanation needed." },
+  ];
 }

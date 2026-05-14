@@ -152,6 +152,27 @@ function initSchema(db: Database.Database) {
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+    CREATE TABLE IF NOT EXISTS blocked_users (
+      blocker_id INTEGER NOT NULL,
+      blocked_id INTEGER NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (blocker_id, blocked_id),
+      FOREIGN KEY (blocker_id) REFERENCES users(id),
+      FOREIGN KEY (blocked_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      reporter_id INTEGER NOT NULL,
+      reported_id INTEGER NOT NULL,
+      reason TEXT NOT NULL,
+      category TEXT NOT NULL,
+      message_content TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (reporter_id) REFERENCES users(id),
+      FOREIGN KEY (reported_id) REFERENCES users(id)
+    );
   `);
 }
 

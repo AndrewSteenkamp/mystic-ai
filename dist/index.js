@@ -184,6 +184,27 @@ function initSchema(db) {
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+    CREATE TABLE IF NOT EXISTS blocked_users (
+      blocker_id INTEGER NOT NULL,
+      blocked_id INTEGER NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (blocker_id, blocked_id),
+      FOREIGN KEY (blocker_id) REFERENCES users(id),
+      FOREIGN KEY (blocked_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      reporter_id INTEGER NOT NULL,
+      reported_id INTEGER NOT NULL,
+      reason TEXT NOT NULL,
+      category TEXT NOT NULL,
+      message_content TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (reporter_id) REFERENCES users(id),
+      FOREIGN KEY (reported_id) REFERENCES users(id)
+    );
   `);
 }
 function ensureDummyUser() {
@@ -1566,6 +1587,187 @@ Sun: ${score.breakdown.sun}/25 | Moon: ${score.breakdown.moon}/25 | Rising: ${sc
 Write a warm, poetic 3-4 sentence match description that captures the essence of this connection. Make it feel magical but grounded. Mention specific sign interactions. Keep it under 150 words.`;
 }
 
+// server/safety.ts
+var PHONE_REGEX = /(\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{2,4}[-.\s]?\d{2,6}/g;
+var EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+var URL_REGEX = /(https?:\/\/|www\.)[^\s<]+|t\.me\/|wa\.me\/|discord\.gg\/|snapchat\.com\/add\//gi;
+var WHATSAPP_REGEX = /whatsapp|whats app|watsapp/i;
+var TELEGRAM_REGEX = /telegram|t\.me/i;
+var SNAPCHAT_REGEX = /snapchat|snap chat/i;
+var OFF_PLATFORM_PUSHES = [
+  /let'?s (move|go|talk|chat|switch) (to|over to)/i,
+  /add me on/i,
+  /find me on/i,
+  /message me on/i,
+  /text me/i,
+  /dm me/i,
+  /here'?s my (number|whatsapp|snap|ig|insta)/i
+];
+var FINANCIAL_KEYWORDS = [
+  "money",
+  "invest",
+  "investment",
+  "crypto",
+  "bitcoin",
+  "btc",
+  "eth",
+  "gift card",
+  "giftcard",
+  "wire transfer",
+  "western union",
+  "moneygram",
+  "paypal",
+  "venmo",
+  "cashapp",
+  "help me out",
+  "need help",
+  "struggling",
+  "emergency",
+  "urgent",
+  "hospital bill",
+  "medical bill",
+  "surgery",
+  "plane ticket",
+  "visa fee",
+  "stranded",
+  "stuck abroad",
+  "oil rig",
+  "deployed",
+  "military deployment",
+  "inheritance",
+  "gold bars",
+  "forex",
+  "trading",
+  "get rich",
+  "double your",
+  "guaranteed return",
+  "send me",
+  "lend me",
+  "borrow",
+  "loan"
+];
+var LOVEBOMB_PATTERNS = [
+  /i love you/i,
+  /you'?re my soulmate/i,
+  /meant to be together/i,
+  /marry me/i,
+  /never felt this way/i,
+  /you'?re the one/i,
+  /twin flame/i,
+  /divine counterpart/i,
+  /perfect match/i,
+  /can'?t live without/i,
+  /my everything/i
+];
+var EXPLICIT_PATTERNS = [
+  /nudes?/i,
+  /sexy pic/i,
+  /dick pic/i,
+  /send (me )?(nudes?|pics?)/i,
+  /what are you wearing/i,
+  /send (me )?a photo/i,
+  /cam\??/i
+];
+function scanMessage(text, conversationContext) {
+  const flags = [];
+  const phones = text.match(PHONE_REGEX);
+  if (phones) {
+    for (const p of phones) {
+      if (p.replace(/[^0-9]/g, "").length >= 7) {
+        flags.push({ type: "contact_info", reason: "Phone number detected", severity: "redact", matched: p });
+      }
+    }
+  }
+  const emails = text.match(EMAIL_REGEX);
+  if (emails) {
+    for (const e of emails) {
+      flags.push({ type: "contact_info", reason: "Email address detected", severity: "redact", matched: e });
+    }
+  }
+  const urls = text.match(URL_REGEX);
+  if (urls) {
+    for (const u of urls) {
+      flags.push({ type: "off_platform", reason: "External link detected", severity: "redact", matched: u });
+    }
+  }
+  if (WHATSAPP_REGEX.test(text)) {
+    flags.push({ type: "off_platform", reason: "WhatsApp reference", severity: "warn", matched: "WhatsApp" });
+  }
+  if (TELEGRAM_REGEX.test(text)) {
+    flags.push({ type: "off_platform", reason: "Telegram reference", severity: "warn", matched: "Telegram" });
+  }
+  if (SNAPCHAT_REGEX.test(text)) {
+    flags.push({ type: "off_platform", reason: "Snapchat reference", severity: "warn", matched: "Snapchat" });
+  }
+  for (const pattern of OFF_PLATFORM_PUSHES) {
+    const match = text.match(pattern);
+    if (match) {
+      flags.push({ type: "off_platform", reason: "Push to move off-platform", severity: "warn", matched: match[0] });
+      break;
+    }
+  }
+  if (conversationContext && conversationContext.messageCount < 20) {
+    const lower = text.toLowerCase();
+    for (const keyword of FINANCIAL_KEYWORDS) {
+      if (lower.includes(keyword)) {
+        flags.push({
+          type: "financial",
+          reason: `Financial keyword detected early in conversation: "${keyword}"`,
+          severity: "block",
+          matched: keyword
+        });
+        break;
+      }
+    }
+  }
+  if (conversationContext && conversationContext.hoursSinceFirstMessage < 48) {
+    for (const pattern of LOVEBOMB_PATTERNS) {
+      const match = text.match(pattern);
+      if (match) {
+        flags.push({
+          type: "lovebomb",
+          reason: `Intense romantic language detected within 48 hours of first contact`,
+          severity: "warn",
+          matched: match[0]
+        });
+        break;
+      }
+    }
+  }
+  for (const pattern of EXPLICIT_PATTERNS) {
+    const match = text.match(pattern);
+    if (match) {
+      flags.push({
+        type: "explicit",
+        reason: "Sexually explicit request detected",
+        severity: "block",
+        matched: match[0]
+      });
+      break;
+    }
+  }
+  const hasBlock = flags.some((f) => f.severity === "block");
+  const hasRedact = flags.some((f) => f.severity === "redact");
+  const hasWarn = flags.some((f) => f.severity === "warn");
+  let riskLevel = "low";
+  if (hasBlock) riskLevel = "critical";
+  else if (flags.length >= 3) riskLevel = "high";
+  else if (hasRedact || flags.length >= 2) riskLevel = "medium";
+  else if (hasWarn) riskLevel = "low";
+  let safeText = text;
+  for (const flag of flags) {
+    if (flag.severity === "redact") {
+      safeText = safeText.replace(flag.matched, "[redacted]");
+    }
+  }
+  return {
+    safe: riskLevel !== "critical",
+    riskLevel,
+    flags,
+    message: safeText
+  };
+}
+
 // server/routers.ts
 var DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
 async function callLLM(prompt) {
@@ -1980,9 +2182,13 @@ var appRouter = router({
     }),
     // ---- Messaging ----
     sendMessage: protectedProcedure.input(z.object({ otherUserId: z.number(), content: z.string().min(1) })).mutation(async ({ input, ctx }) => {
-      const result = sendMessage(ctx.user.id, input.otherUserId, input.content);
+      const safetyResult = scanMessage(input.content);
+      if (safetyResult.riskLevel === "critical") {
+        return { success: false, blocked: true, reason: safetyResult.flags[0]?.reason || "Blocked" };
+      }
+      const result = sendMessage(ctx.user.id, input.otherUserId, safetyResult.message);
       if (!result) return { success: false, error: "Database unavailable" };
-      return { success: true };
+      return { success: true, scanned: safetyResult.flags.length > 0 };
     }),
     conversations: protectedProcedure.query(async ({ ctx }) => {
       return getConversations(ctx.user.id) || [];
@@ -1999,7 +2205,22 @@ var appRouter = router({
         "SELECT COUNT(*) as count FROM messages WHERE receiver_id = ? AND read = 0"
       ).get(ctx.user.id);
       return { count: row?.count || 0 };
-    })
+    }),
+    blockUser: protectedProcedure.input(z.object({ userId: z.number() })).mutation(async ({ input, ctx }) => {
+      const d = getDb();
+      if (!d) return { success: false };
+      d.prepare("INSERT OR IGNORE INTO blocked_users (blocker_id, blocked_id) VALUES (?,?)").run(ctx.user.id, input.userId);
+      d.prepare("DELETE FROM messages WHERE (sender_id=? AND receiver_id=?) OR (sender_id=? AND receiver_id=?)").run(ctx.user.id, input.userId, input.userId, ctx.user.id);
+      return { success: true };
+    }),
+    reportUser: protectedProcedure.input(z.object({ userId: z.number(), reason: z.string().min(3), category: z.enum(["harassment", "scam", "explicit", "fake", "other"]) })).mutation(async ({ input, ctx }) => {
+      const d = getDb();
+      if (!d) return { success: false };
+      d.prepare("INSERT INTO reports (reporter_id, reported_id, reason, category, created_at) VALUES (?,?,?,?,datetime('now'))").run(ctx.user.id, input.userId, input.reason, input.category);
+      d.prepare("INSERT OR IGNORE INTO blocked_users (blocker_id, blocked_id) VALUES (?,?)").run(ctx.user.id, input.userId);
+      return { success: true };
+    }),
+    safetyCenter: protectedProcedure.query(() => ({ tips: getSafetyTips() }))
   }),
   // ============= LIFESTYLE =============
   lifestyle: router({
@@ -2109,6 +2330,15 @@ async function checkReadingQuota(userId) {
   if (sub && sub.status === "active") return true;
   const todayReadings = await countTodayReadings(userId);
   return todayReadings < 1;
+}
+function getSafetyTips() {
+  return [
+    { title: "Keep conversations in-app", body: "Never share phone, WhatsApp, or social handles. Scammers push to move off-platform fast." },
+    { title: "Watch for money requests", body: "Anyone asking for money, crypto, or gift cards is a scammer. Report immediately." },
+    { title: "Video chat before meeting", body: "Always video call before meeting in person. If they resist, it's a red flag." },
+    { title: "Meet in public places", body: "First meetings in busy public spaces. Tell a friend your plans." },
+    { title: "Trust your intuition", body: "If something feels off, block and report instantly \u2014 no explanation needed." }
+  ];
 }
 
 // server/_core/context.ts
