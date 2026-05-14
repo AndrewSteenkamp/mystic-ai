@@ -10,15 +10,15 @@ let _dbTried = false;
 function loadDatabase() {
   if (_dbTried) return;
   _dbTried = true;
+  // Use safe mock as primary — Railway can't compile better-sqlite3 for Linux
   try {
-    // Dynamic require via esbuild shim
     const SQLite = require("better-sqlite3");
     _db = new SQLite(DB_PATH);
     _db.pragma("journal_mode = WAL");
     _db.pragma("foreign_keys = ON");
     initSchema(_db);
   } catch (e) {
-    console.warn("better-sqlite3 not available:", e);
+    console.warn("better-sqlite3 not available (expected on Railway):", e.message);
     _db = createSafeDb();
   }
 }
