@@ -173,6 +173,16 @@ function initSchema(db: Database.Database) {
       FOREIGN KEY (reporter_id) REFERENCES users(id),
       FOREIGN KEY (reported_id) REFERENCES users(id)
     );
+
+    CREATE TABLE IF NOT EXISTS meal_plans (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      week_start TEXT NOT NULL,
+      plan_data TEXT NOT NULL,
+      shopping_list TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
   `);
 }
 

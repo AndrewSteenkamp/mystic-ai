@@ -26,6 +26,7 @@ import { analyzeFaceImage } from "./divination/face";
 import { generateAstrologyReading } from "./divination/astrology";
 import { calculateCompatibility, generateCompatibilityPrompt } from "./divination/compatibility";
 import { scanMessage, checkAstroCompatibility } from "./safety";
+import { suggestMealsFromIngredients, breakdownRecipe, generateWeeklyMenu, generateShoppingList, saveMealPlan, getMealPlan } from "./mealPlanner";
 
 // ---- LLM Helper ----
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
@@ -680,6 +681,37 @@ export const appRouter = router({
           ],
         },
       ];
+    }),
+
+    // ── Meal Planner ──
+
+    suggestMeals: publicProcedure
+      .input(z.object({ ingredients: z.array(z.string()), diet: z.string().optional(), allergies: z.array(z.string()).optional(), maxTime: z.number().optional() }))
+      .query(async ({ input }) => {
+        return suggestMealsFromIngredients(input.ingredients, { diet: input.diet, allergies: input.allergies, maxTime: input.maxTime });
+      }),
+
+    breakdownRecipe: publicProcedure
+      .input(z.object({ recipe: z.string().min(10) }))
+      .query(async ({ input }) => {
+        return breakdownRecipe(input.recipe);
+      }),
+
+    weeklyMenu: publicProcedure
+      .input(z.object({ diet: z.string().optional(), allergies: z.array(z.string()).optional(), calories: z.number().optional(), cuisine: z.string().optional(), budget: z.enum(["low","medium","high"]).optional() }))
+      .query(async ({ input }) => {
+        return generateWeeklyMenu({ diet: input.diet, allergies: input.allergies, caloriesPerDay: input.calories, cuisine: input.cuisine, budget: input.budget });
+      }),
+
+    saveMealPlan: protectedProcedure
+      .input(z.object({ menu: z.any(), shoppingList: z.any() }))
+      .mutation(async ({ input, ctx }) => {
+        saveMealPlan(ctx.user.id, { menu: input.menu, shoppingList: input.shoppingList, totalPrepTime: "" });
+        return { success: true };
+      }),
+
+    myMealPlan: protectedProcedure.query(async ({ ctx }) => {
+      return getMealPlan(ctx.user.id);
     }),
   }),
 });
