@@ -90,6 +90,24 @@ export default function Home() {
         </div>
       )}
 
+      {/* Wellness CTA — always visible */}
+      <Link href="/lifestyle">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-900/30 via-teal-900/30 to-cyan-900/30 border border-emerald-500/20 p-5 mb-6 text-center cursor-pointer hover:scale-[1.02] transition-all duration-200 active:scale-95">
+          <div className="absolute top-0 right-0 text-4xl opacity-20">🌿</div>
+          <div className="relative">
+            <div className="text-lg font-bold text-emerald-200 mb-1 flex items-center justify-center gap-2">
+              <BookOpen className="w-4 h-4 text-emerald-400" /> Lifestyle & Wellness
+            </div>
+            <p className="text-xs text-emerald-200/60 mb-3">
+              Journal your thoughts, plan meals, meditate, and shop wellness products — your daily sanctuary.
+            </p>
+            <p className="text-xs text-emerald-400 flex items-center justify-center gap-1">
+              <ArrowRight className="w-3 h-3" /> Open your wellness space
+            </p>
+          </div>
+        </div>
+      </Link>
+
       {/* Footer */}
       <div className="text-center text-xs text-gray-600 pb-8">
         <p>🔮 For entertainment purposes. AI-generated insights, not professional advice.</p>
