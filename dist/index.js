@@ -54,8 +54,21 @@ function loadDatabase() {
     initSchema(_db);
   } catch (e) {
     console.warn("better-sqlite3 not available:", e);
-    _db = null;
+    _db = createSafeDb();
   }
+}
+function createSafeDb() {
+  const noop = () => {
+  };
+  const emptyAll = () => [];
+  const emptyGet = () => null;
+  const emptyRun = () => ({ changes: 0 });
+  const stmt = { get: emptyGet, all: emptyAll, run: emptyRun };
+  return {
+    prepare: () => stmt,
+    pragma: noop,
+    exec: noop
+  };
 }
 function getDb() {
   loadDatabase();
@@ -175,48 +188,81 @@ function initSchema(db) {
 }
 function ensureDummyUser() {
   const db = getDb();
-  const existing = db.prepare("SELECT id FROM users WHERE open_id = ?").get("mystic-local-user");
-  if (!existing) {
-    db.prepare("INSERT INTO users (open_id, email, name, role) VALUES (?, ?, ?, ?)").run("mystic-local-user", "seeker@mystic.ai", "Mystic Seeker", "admin");
+  if (!db) return;
+  try {
+    const existing = db.prepare("SELECT id FROM users WHERE open_id = ?").get("mystic-local-user");
+    if (!existing) {
+      db.prepare("INSERT INTO users (open_id, email, name, role) VALUES (?, ?, ?, ?)").run("mystic-local-user", "seeker@mystic.ai", "Mystic Seeker", "admin");
+    }
+  } catch (e) {
+    console.warn("ensureDummyUser failed:", e);
   }
 }
 function saveDivinationReading(record) {
   const db = getDb();
-  db.prepare(
-    "INSERT INTO readings (user_id, type, query, result, interpretation) VALUES (?, ?, ?, ?, ?)"
-  ).run(record.userId, record.type, record.query, record.result, record.interpretation);
+  if (!db) return;
+  try {
+    db.prepare(
+      "INSERT INTO readings (user_id, type, query, result, interpretation) VALUES (?, ?, ?, ?, ?)"
+    ).run(record.userId, record.type, record.query, record.result, record.interpretation);
+  } catch (e) {
+    console.warn("saveDivinationReading failed:", e);
+  }
 }
 function getUserReadings(userId) {
   const db = getDb();
-  return db.prepare(
-    "SELECT id, type, query, result, interpretation, created_at as createdAt FROM readings WHERE user_id = ? ORDER BY created_at DESC LIMIT 50"
-  ).all(userId);
+  if (!db) return [];
+  try {
+    return db.prepare(
+      "SELECT id, type, query, result, interpretation, created_at as createdAt FROM readings WHERE user_id = ? ORDER BY created_at DESC LIMIT 50"
+    ).all(userId);
+  } catch (e) {
+    console.warn("getUserReadings failed:", e);
+    return [];
+  }
 }
 function countTodayReadings(userId) {
   const db = getDb();
-  const row = db.prepare(
-    "SELECT COUNT(*) as count FROM readings WHERE user_id = ? AND date(created_at) = date('now')"
-  ).get(userId);
-  return row?.count || 0;
+  if (!db) return 0;
+  try {
+    const row = db.prepare(
+      "SELECT COUNT(*) as count FROM readings WHERE user_id = ? AND date(created_at) = date('now')"
+    ).get(userId);
+    return row?.count || 0;
+  } catch (e) {
+    console.warn("countTodayReadings failed:", e);
+    return 0;
+  }
 }
 function saveUserSubscription(record) {
   const db = getDb();
-  db.prepare(
-    "INSERT INTO subscriptions (user_id, plan_id, status, start_date, end_date, paystack_reference) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(
-    record.userId,
-    record.planId,
-    record.status,
-    record.startDate.toISOString(),
-    record.endDate.toISOString(),
-    record.paystackReference || null
-  );
+  if (!db) return;
+  try {
+    db.prepare(
+      "INSERT INTO subscriptions (user_id, plan_id, status, start_date, end_date, paystack_reference) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(
+      record.userId,
+      record.planId,
+      record.status,
+      record.startDate.toISOString(),
+      record.endDate.toISOString(),
+      record.paystackReference || null
+    );
+  } catch (e) {
+    console.warn("saveUserSubscription failed:", e);
+  }
 }
 function getUserSubscription(userId) {
   const db = getDb();
-  return db.prepare(
-    "SELECT * FROM subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1"
-  ).get(userId);
+  if (!db) return null;
+  try {
+    return db.prepare(
+      "SELECT * FROM subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1"
+    ).get(userId);
+  } catch (e) {
+    console.warn("getUserSubscription failed:", e);
+    return null;
+  }
 }
 function incrementReadingCredits(userId) {
   const db = getDb();
