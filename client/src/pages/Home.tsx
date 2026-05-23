@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { Sparkles, Heart, ArrowRight } from "lucide-react";
+import { Sparkles, Heart, ArrowRight, BookOpen } from "lucide-react";
 
 const methods = [
   { href: "/tarot", icon: "🃏", title: "Tarot Cards", desc: "Draw cards. Reveal your path.", color: "from-amber-500/20 to-amber-600/10 border-amber-500/30", glow: "shadow-amber-500/10" },

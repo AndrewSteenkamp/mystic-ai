@@ -16,11 +16,11 @@ export async function setupVite(app: Express, server: Server) {
     plugins: [react.default(), tailwindcss.default()],
     resolve: {
       alias: {
-        "@": path.resolve(import.meta.dirname, "..", "client", "src"),
-        "@shared": path.resolve(import.meta.dirname, "..", "shared"),
+        "@": path.resolve(import.meta.dirname, "..", "..", "client", "src"),
+        "@shared": path.resolve(import.meta.dirname, "..", "..", "shared"),
       },
     },
-    root: path.resolve(import.meta.dirname, "..", "client"),
+    root: path.resolve(import.meta.dirname, "..", "..", "client"),
     server: {
       host: true,
       allowedHosts: ["localhost", "127.0.0.1"],
