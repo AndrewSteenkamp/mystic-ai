@@ -1,4 +1,3 @@
-import { createRequire } from 'module'; const require = createRequire(import.meta.url);
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
@@ -43,17 +42,20 @@ __export(db_exports, {
 });
 import path from "path";
 import { fileURLToPath } from "url";
+import { createRequire } from "module";
 function loadDatabase() {
   if (_dbTried) return;
   _dbTried = true;
   try {
-    const SQLite = __require("better-sqlite3");
+    const SQLite = require2("better-sqlite3");
     _db = new SQLite(DB_PATH);
+    console.log(`[DB] better-sqlite3 loaded. Path: ${DB_PATH}`);
     _db.pragma("journal_mode = WAL");
     _db.pragma("foreign_keys = ON");
     initSchema(_db);
+    console.log(`[DB] Schema initialized. Users: ${_db.prepare("SELECT COUNT(*) as c FROM users").get().c}`);
   } catch (e) {
-    console.warn("better-sqlite3 not available:", e);
+    console.error(`[DB] better-sqlite3 FAILED: ${e.message}. Using SAFE MOCK \u2014 NO DATA WILL BE SAVED!`);
     _db = createSafeDb();
   }
 }
@@ -231,13 +233,17 @@ function ensureDummyUser() {
 }
 function saveDivinationReading(record) {
   const db = getDb();
-  if (!db) return;
+  if (!db) {
+    console.error("[DB] saveDivinationReading ABORTED \u2014 getDb() returned null/undefined. Readings are NOT being saved!");
+    return;
+  }
   try {
-    db.prepare(
+    const result = db.prepare(
       "INSERT INTO readings (user_id, type, query, result, interpretation) VALUES (?, ?, ?, ?, ?)"
     ).run(record.userId, record.type, record.query, record.result, record.interpretation);
+    console.log(`[DB] Reading saved: ${record.type} for user ${record.userId} (changes: ${result.changes})`);
   } catch (e) {
-    console.warn("saveDivinationReading failed:", e);
+    console.error("saveDivinationReading failed:", e);
   }
 }
 function getUserReadings(userId) {
@@ -462,12 +468,13 @@ function getDietPlans(userId) {
   if (!db) return [];
   return db.prepare("SELECT * FROM diet_plans WHERE user_id = ? ORDER BY created_at DESC").all(userId);
 }
-var __dirname, DB_PATH, _db, _dbTried;
+var __dirname, DB_PATH, require2, _db, _dbTried;
 var init_db = __esm({
   "server/db.ts"() {
     "use strict";
     __dirname = path.dirname(fileURLToPath(import.meta.url));
     DB_PATH = path.resolve(__dirname, "..", "mystic.db");
+    require2 = createRequire(import.meta.url);
     _db = null;
     _dbTried = false;
   }
@@ -2527,6 +2534,7 @@ async function checkReadingQuota(userId) {
   const sub = await getUserSubscription(userId);
   if (sub && sub.status === "active") return true;
   const todayReadings = await countTodayReadings(userId);
+  if (todayReadings === 0) return true;
   return todayReadings < 1;
 }
 function getSafetyTips() {
@@ -2571,11 +2579,11 @@ async function setupVite(app, server) {
     plugins: [react.default(), tailwindcss.default()],
     resolve: {
       alias: {
-        "@": path2.resolve(import.meta.dirname, "..", "client", "src"),
-        "@shared": path2.resolve(import.meta.dirname, "..", "shared")
+        "@": path2.resolve(import.meta.dirname, "..", "..", "client", "src"),
+        "@shared": path2.resolve(import.meta.dirname, "..", "..", "shared")
       }
     },
-    root: path2.resolve(import.meta.dirname, "..", "client"),
+    root: path2.resolve(import.meta.dirname, "..", "..", "client"),
     server: {
       host: true,
       allowedHosts: ["localhost", "127.0.0.1"],

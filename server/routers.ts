@@ -728,8 +728,11 @@ function getDailySeed(): number {
 async function checkReadingQuota(userId: number): Promise<boolean> {
   const sub = await db.getUserSubscription(userId);
   if (sub && sub.status === "active") return true; // unlimited
-
+  
   const todayReadings = await db.countTodayReadings(userId);
+  // If DB is in mock mode (returns 0 for everything), allow readings through
+  // Better to serve the user than block them
+  if (todayReadings === 0) return true;
   return todayReadings < 1; // 1 free reading per day
 }
 
