@@ -1,8 +1,10 @@
 import path from "path";
 import { fileURLToPath } from "url";
+import { createRequire } from "module";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = path.resolve(__dirname, "..", "mystic.db");
+const require = createRequire(import.meta.url);
 
 let _db: any = null;
 let _dbTried = false;
@@ -10,15 +12,16 @@ let _dbTried = false;
 function loadDatabase() {
   if (_dbTried) return;
   _dbTried = true;
-  // Use safe mock as primary — Railway can't compile better-sqlite3 for Linux
   try {
     const SQLite = require("better-sqlite3");
     _db = new SQLite(DB_PATH);
+    console.log(`[DB] better-sqlite3 loaded. Path: ${DB_PATH}`);
     _db.pragma("journal_mode = WAL");
     _db.pragma("foreign_keys = ON");
     initSchema(_db);
+    console.log(`[DB] Schema initialized. Users: ${_db.prepare("SELECT COUNT(*) as c FROM users").get().c}`);
   } catch (e) {
-    console.warn("better-sqlite3 not available (expected on Railway):", e.message);
+    console.error(`[DB] better-sqlite3 FAILED: ${e.message}. Using SAFE MOCK — NO DATA WILL BE SAVED!`);
     _db = createSafeDb();
   }
 }
@@ -218,13 +221,17 @@ export interface ReadingRecord {
 
 export function saveDivinationReading(record: ReadingRecord) {
   const db = getDb();
-  if (!db) return;
+  if (!db) {
+    console.error("[DB] saveDivinationReading ABORTED — getDb() returned null/undefined. Readings are NOT being saved!");
+    return;
+  }
   try {
-    db.prepare(
+    const result = db.prepare(
       "INSERT INTO readings (user_id, type, query, result, interpretation) VALUES (?, ?, ?, ?, ?)"
     ).run(record.userId, record.type, record.query, record.result, record.interpretation);
+    console.log(`[DB] Reading saved: ${record.type} for user ${record.userId} (changes: ${result.changes})`);
   } catch (e) {
-    console.warn("saveDivinationReading failed:", e);
+    console.error("saveDivinationReading failed:", e);
   }
 }
 
