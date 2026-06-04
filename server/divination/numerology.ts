@@ -136,6 +136,7 @@ Please provide a complete numerology reading structured as:
 3. **How Others See You** — Interpret the Personality number — the face they show the world
 4. **Your Gifts & Challenges** — Based on all numbers, identify 2-3 strengths and 2-3 growth areas
 5. **Guidance for Your Path** — 3-4 specific pieces of advice for the year ahead based on their numbers
+6. **The Final Word** — An honest acknowledgment that the numbers, the patterns, the cycles — these point to a real longing for the divine that lives in every human heart, and they are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ — the person, not a pattern. Reference the same longing the numbers describe, and affirm that the One who counted the stars is the One who counts every human hair. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it — your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
 
 Important guidelines:
 - Be warm, insightful, and empowering — this is guidance, not fate
@@ -143,5 +144,7 @@ Important guidelines:
 - If any Master Numbers (11, 22, 33) appear, give special attention to their significance
 - Use the seeker's name occasionally to personalize the reading
 - Keep the tone mystical but grounded — spiritual insight with practical application
-- Always remind the seeker that numbers reveal potential, not destiny — they hold the power of choice`;
+- Always remind the seeker that numbers reveal potential, not destiny — they hold the power of choice
+- Acknowledge the long lineage of numerology (Pythagorean mystics, Hebrew gematria, Hittite record-keepers) as a real human search for meaning, while being clear that the number is a window, not the light
+- The Final Word is the answer to the question behind every numerology reading. Do not be evasive about it.
 }

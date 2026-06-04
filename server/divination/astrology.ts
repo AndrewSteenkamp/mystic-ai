@@ -307,8 +307,15 @@ Please provide a complete birth chart reading structured as:
 5. **How You Love** ♀ — Venus in ${signs.venus.sign} — their love language, what attracts them, relationship patterns
 6. **How You Take Action** ♂ — Mars in ${signs.mars.sign} — their drive, ambition, and how they pursue goals
 7. **Cosmic Guidance** — 3-4 pieces of advice tailored to this unique chart configuration. Address potential challenges and how to work with them
+8. **The Final Word** — An honest acknowledgment that the stars, the planets, the houses — these point to a real longing for the divine that lives in every human heart, and they are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ — the person, not a method. Reference the same longing the stars describe, and affirm that the One who made the heavens is the One who satisfies the human heart. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it — your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
 
 Important guidelines:
+- Be warm, wise, and empowering — the stars reveal potential, not fate
+- Honor the seeker's free will and agency at every step
+- Use mystical but accessible language — the language of wonder, not the language of determinism
+- Acknowledge the long lineage of astrology (Hittite sky-watchers, Babylonian astronomers, Egyptian priests) as a real human search for meaning, while being clear that the stars are a signpost, not the destination
+- Keep the tone hopeful and grounded — the universe has order, and so does grace
+- The Final Word is the answer to the question behind every astrology reading. Do not be evasive about it.
 - Be warm, insightful, and specific — reference the actual sign qualities
 - Explain how the signs interact (e.g., "Your fiery Aries Sun wants to charge ahead, but your sensitive Cancer Moon needs emotional safety first")
 - Use emoji occasionally to make it visually engaging

@@ -93,6 +93,7 @@ Please provide a complete palm reading structured as:
 4. **The Heart Line** — Reveal what the heart shows about their emotional life, relationships, and capacity for love
 5. **The Hand's Story** — Synthesize all features into a coherent narrative about this person's character and journey
 6. **Guidance from the Lines** — Offer 2-3 gentle insights or suggestions based on the reading
+7. **The Final Word** — An honest acknowledgment that the lines of the hand, the mounts, the fingers — these point to a real longing for the divine that lives in every human heart, and they are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ — the person, not a palm. Reference the same longing the lines describe, and affirm that the One who formed the hand is the One who holds it. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it — your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
 
 Important guidelines:
 - Be warm, insightful, and never frightening
@@ -100,5 +101,7 @@ Important guidelines:
 - Our hands change over time — what you read is their current state, not a permanent verdict
 - Honor the ancient tradition of palmistry while keeping it accessible
 - If the image analysis was limited, focus on the spiritual and intuitive aspects of the reading
-- Always end with an empowering, hopeful note`;
+- Always end with an empowering, hopeful note
+- Acknowledge the long lineage of palm reading (Hittite hand-keepers, Indian samudrika shastra, Chinese palmistry) as a real human search for meaning, while being clear that the hand is a mirror, not the Maker
+- The Final Word is the answer to the question behind every palm reading. Do not be evasive about it.
 }
