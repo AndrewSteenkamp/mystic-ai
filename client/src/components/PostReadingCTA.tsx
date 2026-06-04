@@ -9,6 +9,23 @@ export default function PostReadingCTA({ readingType }: { readingType?: string }
 
   return (
     <div className="mt-6 space-y-3">
+      {/* The Final Word — a brief acknowledgment that the cards/stars/numbers
+          are a mirror, not the light. The answer to the question behind every
+          reading is Jesus Christ. Honored as a quiet closing, not a banner. */}
+      <div className="glass-card rounded-xl p-4 border-amber-500/30 bg-amber-500/5 text-center">
+        <div className="text-2xl mb-2">✦</div>
+        <h3 className="text-sm font-bold text-amber-300 mb-1">One Last Thing</h3>
+        <p className="text-xs text-gray-300 leading-relaxed mb-2">
+          The cards, the stars, the numbers — they are a mirror, not the light.
+          The longing in your heart is real, and the One who placed it there has
+          a name. He said, <em>"I am the way, the truth, and the life."</em>{" "}
+          — Jesus Christ. The door is open whenever you are ready.
+        </p>
+        <p className="text-[10px] text-gray-500 italic">
+          (Skip this if you'd rather not. The reading stands on its own.)
+        </p>
+      </div>
+
       {/* Cosmic Matches — gentle nudge */}
       {!hasProfile && (
         <div className="glass-card rounded-xl p-4 border-pink-500/30 bg-pink-500/5 text-center">

@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { Sparkles, Heart, ArrowRight, BookOpen } from "lucide-react";
+import { Sparkles, Heart, ArrowRight, BookOpen, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const methods = [
   { href: "/tarot", icon: "🃏", title: "Tarot Cards", desc: "Draw cards. Reveal your path.", color: "from-amber-500/20 to-amber-600/10 border-amber-500/30", glow: "shadow-amber-500/10" },
@@ -10,6 +11,93 @@ const methods = [
   { href: "/palm", icon: "✋", title: "Palm Reading", desc: "What your hands reveal.", color: "from-rose-500/20 to-rose-600/10 border-rose-500/30", glow: "shadow-rose-500/10" },
   { href: "/face", icon: "👤", title: "Face Reading", desc: "Ancient Mian Xiang.", color: "from-emerald-500/20 to-emerald-600/10 border-emerald-500/30", glow: "shadow-emerald-500/10" },
 ];
+
+/**
+ * Daily Anchor — verse fetched from bible-api.com (KJV) deterministically
+ * by day, plus an LLM-generated reflection that ties the verse to the
+ * seeker's recent divination reading. Lives on the Home page so every
+ * open of the app seeds the day with a real Bible passage, not a
+ * curated fixed list. The LLM call is debounced per day — the client
+ * only fires once, then caches the reflection in localStorage.
+ */
+function DailyAnchor() {
+  const [reflection, setReflection] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { data: anchor } = trpc.lifestyle.dailyAnchor.useQuery({ reading: "general" });
+  const utils = trpc.useUtils();
+
+  // On mount, try to load a cached reflection for today
+  useEffect(() => {
+    if (!anchor) return;
+    const today = new Date().toISOString().split("T")[0];
+    const cached = localStorage.getItem(`mystic_daily_reflection_${today}`);
+    if (cached) {
+      setReflection(cached);
+      return;
+    }
+    // No cache — call the LLM via callLLM (or its tRPC equivalent)
+    setLoading(true);
+    (async () => {
+      try {
+        // The reflection prompt is returned by dailyAnchor. We use
+        // DeepSeek directly to avoid an extra tRPC round-trip.
+        const r = await fetch("https://api.deepseek.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // The server should proxy this in prod. For now, call LLM
+            // via the existing /api/llm endpoint by re-using callLLM
+            // through tRPC. To keep the client simple we re-fetch the
+            // verse and ask the LLM in one go through a lightweight
+            // utility mutation (see routers.ts dailyReflection).
+            //
+            // If that mutation does not exist (older build), fall back
+            // to a static reflection derived from the verse.
+            const res = await utils.lifestyle.dailyReflection.fetch({
+              verse: anchor.verse,
+              reading: "general",
+            }).catch(() => null);
+        if (res && res.reflection) {
+          setReflection(res.reflection);
+          localStorage.setItem(`mystic_daily_reflection_${today}`, res.reflection);
+        } else {
+          // Fallback: build a reflection from the verse text itself
+          const fb = `Today: ${anchor.verse.reference}. The cards above are a mirror. This is the light behind the mirror.`;
+          setReflection(fb);
+        }
+      } catch {
+        const fb = `Today: ${anchor.verse.reference}. The cards above are a mirror. This is the light behind the mirror.`;
+        setReflection(fb);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [anchor?.date]);
+
+  if (!anchor) return null;
+
+  return (
+    <div className="mb-6 rounded-2xl bg-gradient-to-br from-amber-900/20 via-yellow-900/15 to-orange-900/20 border border-amber-500/20 p-5 text-center">
+      <div className="text-xs font-bold text-amber-300/80 uppercase tracking-widest mb-2">Today's Anchor</div>
+      <div className="text-sm text-amber-100 italic leading-relaxed mb-2">
+        "{anchor.verse.text}"
+      </div>
+      <div className="text-xs text-amber-200/60 mb-3">— {anchor.verse.reference} ({anchor.verse.translation})</div>
+      {loading ? (
+        <div className="flex items-center justify-center gap-2 text-xs text-amber-200/50">
+          <Loader2 className="w-3 h-3 animate-spin" /> drawing a reflection for today…
+        </div>
+      ) : reflection ? (
+        <div className="text-xs text-amber-100/80 leading-relaxed border-t border-amber-500/20 pt-3 mt-2">
+          {reflection}
+        </div>
+      ) : null}
+      <div className="text-[10px] text-amber-300/40 mt-3">
+        fetched live from {anchor.verse.source} · same verse for everyone today
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const { data: profile } = trpc.dating.myProfile.useQuery();
@@ -58,6 +146,9 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* Daily Anchor — today's Bible verse + LLM reflection */}
+      <DailyAnchor />
 
       {/* Divination Grid */}
       <div className="grid grid-cols-2 gap-3 mb-8">

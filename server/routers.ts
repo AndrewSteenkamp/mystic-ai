@@ -27,6 +27,7 @@ import { generateAstrologyReading } from "./divination/astrology";
 import { calculateCompatibility, generateCompatibilityPrompt } from "./divination/compatibility";
 import { scanMessage, checkAstroCompatibility } from "./safety";
 import { suggestMealsFromIngredients, breakdownRecipe, generateWeeklyMenu, generateShoppingList, saveMealPlan, getMealPlan } from "./mealPlanner";
+import { get_daily_verse_payload } from "./divination/daily_verse";
 
 // ---- LLM Helper ----
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
@@ -680,6 +681,34 @@ export const appRouter = router({
             "Slowly return, carrying the starlight within you",
           ],
         },
+        {
+          title: "The Anchor — Sitting with the Word",
+          description: "A contemplative meditation that opens the door of Scripture. Sit. Breathe. Read. Listen. The goal is not to feel something — it is to be with Someone who is already there. Honors the seeker's free will absolutely.",
+          duration: "15 min",
+          steps: [
+            "Sit comfortably. Close your eyes. Take three slow breaths.",
+            "Place your hand on your chest. Notice the heart beating. That is the One who made you, still keeping you alive.",
+            "Read silently: 'Come to me, all you who are weary and heavy laden, and I will give you rest.' (Matthew 11:28)",
+            "Sit with that sentence. Do not analyze it. Do not memorize it. Just let it sit in you the way water sits in a cup.",
+            "If your mind wanders — and it will — gently return to the sentence. There is no failure here. There is only sitting.",
+            "After several minutes, open your eyes. Notice the room. Notice yourself. You are the same person, but you are not alone in the room anymore.",
+            "Close with this prayer, if you want to: 'Lord Jesus, I do not understand everything. But I am here. That is enough for now.'",
+            "Sit in silence for one more minute. Then return to your day.",
+          ],
+        },
+        {
+          title: "Gratitude & Grace",
+          description: "A simple evening practice of counting grace. Not the gratitude that performs — the gratitude that breathes.",
+          duration: "8 min",
+          steps: [
+            "Lie down or sit comfortably. Close your eyes.",
+            "Recall three things from today. Not big things. A cup of coffee. A face you saw. The sound of rain.",
+            "For each one, say quietly: 'That was a gift. I did not earn it. It was given.'",
+            "Now recall one thing that hurt today. Hold it gently. Say: 'That was not a gift. But grace met me in it somewhere. I do not have to see where yet.'",
+            "Rest in that. Grace is not the absence of hurt. Grace is the presence of God in the hurt.",
+            "End with: 'Thank you. I do not understand. But thank you.'",
+          ],
+        },
       ];
     }),
 
@@ -713,6 +742,59 @@ export const appRouter = router({
     myMealPlan: protectedProcedure.query(async ({ ctx }) => {
       return getMealPlan(ctx.user.id);
     }),
+
+    // Daily Anchor — a real Bible verse fetched from bible-api.com (KJV) with
+    // a reflection prompt the client can send to the LLM. The verse is
+    // deterministic by date, so everyone sees the same verse on the same
+    // day. Falls back to bolls.life, then a 12-verse offline set if both
+    // APIs are unreachable. See server/divination/daily_verse.py.
+    // The optional 'reading' arg seeds the reflection with the seeker's
+    // last divination type (tarot / astrology / etc.) for a context-aware
+    // paragraph.
+    dailyAnchor: publicProcedure
+      .input(z.object({ reading: z.string().optional() }).optional())
+      .query(({ input }) => {
+        return get_daily_verse_payload(input?.reading);
+      }),
+
+    // Daily Reflection — server-side LLM call. The client passes the
+    // verse and the seeker's last reading type, gets back a 60-80 word
+    // reflection. This is split from dailyAnchor so the verse comes
+    // fast (cached) and the reflection pays the LLM cost only when
+    // the user opens the Home page. Per-day caching happens on the
+    // client in localStorage.
+    dailyReflection: publicProcedure
+      .input(z.object({
+        verse: z.object({
+          reference: z.string(),
+          text: z.string(),
+          translation: z.string().optional(),
+          source: z.string().optional(),
+        }),
+        reading: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const prompt = `You are a gentle, warm spiritual companion writing a one-paragraph reflection (60-80 words) on today's Bible verse for a Mystic AI user.
+
+THE VERSE:
+${input.verse.reference} — "${input.verse.text}"
+
+THE USER'S CONTEXT:
+${input.reading || "general"}
+(If "general", write a reflection that fits any seeker. If tarot/astrology/numerology/dream/palm/face/compatibility, subtly tie the verse to what their reading may have stirred.)
+
+THE ANCHOR — read this before writing:
+- The cards, the stars, the numbers — they are a mirror, not the light. The Bible is the light behind the mirror.
+- The user is in an app full of divination. The reflection should feel like the natural ground beneath the reading, not a sermon.
+- Jesus Christ is the answer to the question every divination ritual is secretly asking. Name him only if it fits the verse naturally. If the verse is more about God-as-comforter than Christ, follow the verse.
+- Honesty over polish. If the verse is about hard things (suffering, fear, judgment), do not soften it. Sit with it.
+- Honor the seeker's free will absolutely. Do not preach. Do not coerce.
+- The reflection should end with a single sentence that lands. Not a question. A landing.
+
+Write the reflection now. Just the paragraph, no headers, no labels.`;
+        const reflection = await callLLM(prompt);
+        return { reflection };
+      }),
   }),
 });
 
