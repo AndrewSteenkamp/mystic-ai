@@ -104,4 +104,5 @@ Important guidelines:
 - Always end with an empowering, hopeful note
 - Acknowledge the long lineage of palm reading (Hittite hand-keepers, Indian samudrika shastra, Chinese palmistry) as a real human search for meaning, while being clear that the hand is a mirror, not the Maker
 - The Final Word is the answer to the question behind every palm reading. Do not be evasive about it.
+`
 }

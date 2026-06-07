@@ -92,4 +92,5 @@ Important guidelines:
 - Always end with an empowering note about the beauty of the human face as a map of life lived
 - Acknowledge the long lineage of face reading (Hittite physiognomy, Mian Xiang masters, Renaissance Lavater) as a real human search for meaning, while being clear that the face is a window, not the Light behind it
 - The Final Word is the answer to the question behind every face reading. Do not be evasive about it.
+`
 }

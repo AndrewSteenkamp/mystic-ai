@@ -119,7 +119,6 @@ Important guidelines:
 - Reference the actual card names and meanings in your interpretation
 - Keep the tone hopeful and empowering, even when the cards suggest challenges
 - Acknowledge the long lineage of divination (Hittite oracles, Egyptian priests, Greek mystics) as a real human search for meaning, while being clear that the cards are a mirror, not the light`;
-}`;
 }
 
 // Export the full deck for display purposes

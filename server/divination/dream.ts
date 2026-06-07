@@ -146,4 +146,5 @@ Important guidelines:
 - End with a sense of wonder and curiosity about the inner world
 - Acknowledge the long lineage of dream interpretation (Hittite dream-keepers, Egyptian priests, Hebrew prophets, Jung) as a real human search for meaning, while being clear that the dream is a messenger, not the Sender
 - The Final Word is the answer to the question behind every dream. Do not be evasive about it.
+`
 }

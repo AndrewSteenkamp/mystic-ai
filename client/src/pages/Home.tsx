@@ -35,28 +35,14 @@ function DailyAnchor() {
       setReflection(cached);
       return;
     }
-    // No cache — call the LLM via callLLM (or its tRPC equivalent)
+    // No cache — call the LLM via the dailyReflection tRPC mutation
     setLoading(true);
     (async () => {
       try {
-        // The reflection prompt is returned by dailyAnchor. We use
-        // DeepSeek directly to avoid an extra tRPC round-trip.
-        const r = await fetch("https://api.deepseek.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // The server should proxy this in prod. For now, call LLM
-            // via the existing /api/llm endpoint by re-using callLLM
-            // through tRPC. To keep the client simple we re-fetch the
-            // verse and ask the LLM in one go through a lightweight
-            // utility mutation (see routers.ts dailyReflection).
-            //
-            // If that mutation does not exist (older build), fall back
-            // to a static reflection derived from the verse.
-            const res = await utils.lifestyle.dailyReflection.fetch({
-              verse: anchor.verse,
-              reading: "general",
-            }).catch(() => null);
+        const res = await utils.lifestyle.dailyReflection.fetch({
+          verse: anchor.verse,
+          reading: "general",
+        }).catch(() => null);
         if (res && res.reflection) {
           setReflection(res.reflection);
           localStorage.setItem(`mystic_daily_reflection_${today}`, res.reflection);
