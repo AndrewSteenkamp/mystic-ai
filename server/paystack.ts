@@ -3,12 +3,11 @@
  * Mystic AI — Fortune Telling App
  *
  * Supports:
- *   - Single readings:    R29
- *   - Monthly subscription: R99
- *   - Annual subscription:  R799
+ *   - Single readings:    $1.99 USD (199 cents)
+ *   - Monthly subscription: $4.99 USD (499 cents)
+ *   - Annual subscription:  $39 USD (3900 cents)
  *
  * API Base: https://api.paystack.co
- * Auth:     Bearer <secret_key>
  */
 
 import crypto from "node:crypto";
@@ -139,7 +138,7 @@ export interface InitializeTransactionData {
 /**
  * Initialize a Paystack transaction and return the authorization URL + reference.
  *
- * @param amount - Amount in ZAR cents (e.g. R29.00 = 2900, R99.00 = 9900)
+ * @param amount - Amount in USD cents (e.g. $1.99 = 199, $4.99 = 499, $39 = 3900)
  * @param email  - Customer email address
  * @param callbackUrl - URL to redirect after payment
  * @returns { authorization_url, access_code, reference }
@@ -383,7 +382,7 @@ export async function handlePaystackWebhook(
   // --- 3. Route by event type ---
   switch (eventType) {
     case "charge.success": {
-      // Single payment succeeded — e.g. a R29 reading was paid
+      // Single payment succeeded — e.g. a $1.99 reading was paid
       // TODO: link to your business logic (grant access, send email, etc.)
       return {
         acknowledged: true,
@@ -473,8 +472,8 @@ export interface CreatePlanData {
  * Create a Paystack subscription plan.
  *
  * Mystic AI plans:
- *   - "Mystic Monthly"  — 9900  (R99.00 monthly)
- *   - "Mystic Annual"   — 79900 (R799.00 annually)
+ *   - "Mystic Monthly"  — 499   ($4.99 USD monthly)
+ *   - "Mystic Annual"   — 3900  ($39 USD annually)
  *
  * @returns Created plan data including the plan_code needed for subscriptions
  */
