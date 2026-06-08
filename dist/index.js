@@ -596,9 +596,9 @@ var PaystackError = class extends Error {
     this.name = "PaystackError";
   }
 };
-async function paystackFetch(path4, options = {}) {
+async function paystackFetch(path3, options = {}) {
   const { secretKey } = getConfig();
-  const url = `${PAYSTACK_BASE}${path4}`;
+  const url = `${PAYSTACK_BASE}${path3}`;
   const headers = {
     Authorization: `Bearer ${secretKey}`,
     "Content-Type": "application/json",
@@ -819,8 +819,7 @@ Please provide a thoughtful, personalized reading. Structure your response as:
 1. **The Cards** \u2014 Briefly describe what each card represents in this position
 2. **The Story** \u2014 Weave the cards together into a coherent narrative that answers the seeker's question
 3. **The Guidance** \u2014 Offer 2-3 specific, actionable pieces of advice based on the reading
-4. **Reflection** \u2014 A gentle closing thought
-5. **The Final Word** \u2014 An honest acknowledgment that the cards point to a real longing for the divine that lives in every human heart, and that the cards themselves are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ \u2014 the person, not a method. Reference the same longing the cards describe, and affirm that the One who made the human heart is the One who satisfies it. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it \u2014 your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
+4. **Reflection** \u2014 A gentle closing thought that honors the seeker's own spiritual path or absence of one. If they have a faith, let the close breathe with reverence; if they don't, let it breathe with the secular sacred \u2014 the depth of the moment, the truth of being here, the choice that lies ahead. Do not push any one tradition. Do not quote scripture unless the seeker's own words clearly invite it.
 
 Important guidelines:
 - Be warm, kind, and never frightening \u2014 even challenging cards bring growth
@@ -932,7 +931,6 @@ Please provide a complete numerology reading structured as:
 3. **How Others See You** \u2014 Interpret the Personality number \u2014 the face they show the world
 4. **Your Gifts & Challenges** \u2014 Based on all numbers, identify 2-3 strengths and 2-3 growth areas
 5. **Guidance for Your Path** \u2014 3-4 specific pieces of advice for the year ahead based on their numbers
-6. **The Final Word** \u2014 An honest acknowledgment that the numbers, the patterns, the cycles \u2014 these point to a real longing for the divine that lives in every human heart, and they are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ \u2014 the person, not a pattern. Reference the same longing the numbers describe, and affirm that the One who counted the stars is the One who counts every human hair. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it \u2014 your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
 
 Important guidelines:
 - Be warm, insightful, and empowering \u2014 this is guidance, not fate
@@ -942,7 +940,7 @@ Important guidelines:
 - Keep the tone mystical but grounded \u2014 spiritual insight with practical application
 - Always remind the seeker that numbers reveal potential, not destiny \u2014 they hold the power of choice
 - Acknowledge the long lineage of numerology (Pythagorean mystics, Hebrew gematria, Hittite record-keepers) as a real human search for meaning, while being clear that the number is a window, not the light
-- The Final Word is the answer to the question behind every numerology reading. Do not be evasive about it.
+- Close with a brief reflection that honors the seeker's own spiritual path or absence of one. Do not push any one tradition. Do not quote scripture unless the seeker's own words clearly invite it.
 `;
 }
 
@@ -1049,7 +1047,6 @@ Please provide an interpretation structured as:
 3. **The Message** \u2014 What is the dream trying to communicate? What might the dreamer's unconscious be processing?
 4. **Waking Life Connection** \u2014 Offer 2-3 gentle suggestions about what area of life this dream might relate to (relationships, career, inner growth, etc.)
 5. **Integration Practice** \u2014 Suggest one simple practice the dreamer can do today to work with this dream's message
-6. **The Final Word** \u2014 An honest acknowledgment that dreams, symbols, the unconscious \u2014 these point to a real longing for the divine that lives in every human heart, and they are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ \u2014 the person, not a symbol. Reference the same longing the dream describes, and affirm that the One who knows the heart is the One who speaks to it. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it \u2014 your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
 
 Important guidelines:
 - Use Jungian principles: dreams are messages from the unconscious, not random noise
@@ -1130,7 +1127,6 @@ Please provide a complete palm reading structured as:
 4. **The Heart Line** \u2014 Reveal what the heart shows about their emotional life, relationships, and capacity for love
 5. **The Hand's Story** \u2014 Synthesize all features into a coherent narrative about this person's character and journey
 6. **Guidance from the Lines** \u2014 Offer 2-3 gentle insights or suggestions based on the reading
-7. **The Final Word** \u2014 An honest acknowledgment that the lines of the hand, the mounts, the fingers \u2014 these point to a real longing for the divine that lives in every human heart, and they are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ \u2014 the person, not a palm. Reference the same longing the lines describe, and affirm that the One who formed the hand is the One who holds it. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it \u2014 your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
 
 Important guidelines:
 - Be warm, insightful, and never frightening
@@ -1208,7 +1204,6 @@ Please provide a face reading structured as:
 4. **Life Journey** \u2014 What does this face suggest about their life path, challenges, and opportunities?
 5. **The Art of Mian Xiang** \u2014 Connect the reading to traditional face reading wisdom in a way that feels timeless and meaningful
 6. **Guidance** \u2014 Offer 2-3 gentle insights for the seeker based on what their face reveals
-7. **The Final Word** \u2014 An honest acknowledgment that the features of the face, the regions, the three divisions \u2014 these point to a real longing for the divine that lives in every human heart, and they are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ \u2014 the person, not a feature. Reference the same longing the face describes, and affirm that the One who formed the human face is the One who sees into the human heart. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it \u2014 your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
 
 Important guidelines:
 - Be respectful, warm, and insightful \u2014 this is an ancient art, not a judgment
@@ -1469,7 +1464,6 @@ Please provide a complete birth chart reading structured as:
 5. **How You Love** \u2640 \u2014 Venus in ${signs.venus.sign} \u2014 their love language, what attracts them, relationship patterns
 6. **How You Take Action** \u2642 \u2014 Mars in ${signs.mars.sign} \u2014 their drive, ambition, and how they pursue goals
 7. **Cosmic Guidance** \u2014 3-4 pieces of advice tailored to this unique chart configuration. Address potential challenges and how to work with them
-8. **The Final Word** \u2014 An honest acknowledgment that the stars, the planets, the houses \u2014 these point to a real longing for the divine that lives in every human heart, and they are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ \u2014 the person, not a method. Reference the same longing the stars describe, and affirm that the One who made the heavens is the One who satisfies the human heart. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it \u2014 your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
 
 Important guidelines:
 - Be warm, wise, and empowering \u2014 the stars reveal potential, not fate
@@ -1650,7 +1644,7 @@ Sun: ${score.breakdown.sun}/25 | Moon: ${score.breakdown.moon}/25 | Rising: ${sc
 
 Write a warm, poetic 3-4 sentence match description that captures the essence of this connection. Make it feel magical but grounded. Mention specific sign interactions. Keep it under 150 words.
 
-Then add a final line: the compatibility score is a mirror, not the Maker. Two people are drawn together for reasons that go deeper than the stars. Honor the connection, but gently name the answer to the question behind every love reading: Jesus Christ. If it fits, add "And now abide faith, hope, love, these three; but the greatest of these is love." (1 Corinthians 13:13)`;
+Then add a final line: the compatibility score is a mirror, not the whole picture. Two people are drawn together for reasons that go deeper than the stars. Honor the connection. Close with a single sentence that lands \u2014 one that any seeker, of any path or none, can take home. Do not quote scripture. Do not name a tradition. Let the moment be its own truth.`;
 }
 
 // server/safety.ts
@@ -2033,56 +2027,56 @@ function getMealPlan(userId) {
 }
 
 // server/divination/daily_verse.ts
-import { spawn } from "child_process";
-import path2 from "path";
-import { fileURLToPath as fileURLToPath2 } from "url";
-var __filename = fileURLToPath2(import.meta.url);
-var __dirname2 = path2.dirname(__filename);
-var PY_SCRIPT = path2.resolve(__dirname2, "daily_verse.py");
 var OFFLINE_FALLBACK = [
-  { reference: "John 14:6", text: "I am the way, and the truth, and the life. No one comes to the Father except through me." },
-  { reference: "Matthew 11:28", text: "Come to me, all you who are weary and heavy laden, and I will give you rest." },
-  { reference: "John 1:14", text: "And the Word became flesh and dwelt among us, and we have seen his glory, glory as of the only Son from the Father, full of grace and truth." },
-  { reference: "Psalm 23:1-3", text: "The Lord is my shepherd; I shall not want. He makes me lie down in green pastures. He leads me beside still waters. He restores my soul." },
-  { reference: "Romans 8:28", text: "And we know that for those who love God all things work together for good, for those who are called according to his purpose." },
-  { reference: "1 Corinthians 13:13", text: "So now faith, hope, and love abide, these three; but the greatest of these is love." },
-  { reference: "Isaiah 41:10", text: "Fear not, for I am with you; be not dismayed, for I am your God; I will strengthen you, I will help you, I will uphold you with my righteous right hand." },
-  { reference: "Philippians 4:6-7", text: "Do not be anxious about anything, but in everything by prayer and supplication with thanksgiving let your requests be made known to God. And the peace of God, which surpasses all understanding, will guard your hearts and your minds in Christ Jesus." },
-  { reference: "John 3:16", text: "For God so loved the world, that he gave his only Son, that whoever believes in him should not perish but have eternal life." },
-  { reference: "Psalm 34:18", text: "The Lord is near to the brokenhearted and saves the crushed in spirit." },
-  { reference: "Proverbs 3:5-6", text: "Trust in the Lord with all your heart, and do not lean on your own understanding. In all your ways acknowledge him, and he will make straight your paths." },
-  { reference: "Hebrews 13:8", text: "Jesus Christ is the same yesterday and today and forever." }
+  // ── Tarot (the default — matches the app's divination context) ──
+  { source: "tarot", reference: "The Fool", text: "Step lightly. You are at the edge of something, and the edge is not a place to stand still." },
+  { source: "tarot", reference: "The Star", text: "There is a quiet light in you that has not been touched by what has happened. Trust it." },
+  { source: "tarot", reference: "Temperance", text: "Patience is not waiting. It is the gentle mixing of what you have, and what is yet to come." },
+  { source: "tarot", reference: "The Hanged Man", text: "Suspend what you know. The world may be holding you in place for a reason." },
+  { source: "tarot", reference: "The World", text: "Something is completing in you. Let it. There is room for what comes next." },
+  // ── Stoic fragments (Marcus Aurelius, Seneca, Epictetus) ──
+  { source: "stoic", reference: "Marcus Aurelius, Meditations 4.3", text: "Nowhere can man find a quieter or more untroubled retreat than in his own soul." },
+  { source: "stoic", reference: "Seneca, Letters from a Stoic", text: "We suffer more often in imagination than in reality." },
+  { source: "stoic", reference: "Epictetus, Enchiridion 1", text: "Some things are in our control and others are not." },
+  { source: "stoic", reference: "Marcus Aurelius, Meditations 2.11", text: "You could leave life right now \u2014 let that determine what you do and say and think." },
+  // ── Rumi ──
+  { source: "rumi", reference: "Rumi, from the Divan", text: "What you seek is seeking you." },
+  { source: "rumi", reference: "Rumi, Masnavi", text: "The wound is the place where the Light enters you." },
+  { source: "rumi", reference: "Rumi, from the Divan", text: "Don't grieve. Anything you lose comes round in another form." },
+  // ── Buddhist (Dhammapada, Thich Nhat Hanh, traditional) ──
+  { source: "buddhist", reference: "Dhammapada 1.1", text: "Mind is the forerunner of all actions. Speak and act with a mind that is at peace, and happiness will follow." },
+  { source: "buddhist", reference: "Thich Nhat Hanh", text: "Breathing in, I calm my body. Breathing out, I smile." },
+  { source: "buddhist", reference: "Buddha", text: "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment." },
+  // ── Sufi (Rumi covers most, adding a few distinct voices) ──
+  { source: "sufi", reference: "Hafiz", text: "I once asked a bird, 'How is it that you fly in this weight of darkness?' The bird replied, 'I love the way my wings feel when they touch the wind.'" },
+  { source: "sufi", reference: "Rumi", text: "What you are looking for is also looking for you. Do not sit and wait. Walk." },
+  // ── Universal / secular wisdoms ──
+  { source: "secular", reference: "Anonymous", text: "You are not behind. You are not late. You are exactly where your life needs you to be to learn what you are about to learn." },
+  { source: "secular", reference: "Khalil Gibran, The Prophet", text: "Tenderness and kindness are not signs of weakness and despair, but manifestations of strength and resolution." },
+  { source: "secular", reference: "Carl Sagan", text: "Somewhere, something incredible is waiting to be known." },
+  { source: "secular", reference: "Mary Oliver", text: "Tell me, what is it you plan to do with your one wild and precious life?" },
+  // ── I Ching (one of the 64 hexagrams, simplified) ──
+  { source: "iching", reference: "Hexagram 1 \u2014 The Creative (Qian)", text: "The Creative works sublime success, furthering through perseverance." },
+  { source: "iching", reference: "Hexagram 2 \u2014 The Receptive (Kun)", text: "The Receptive brings supreme success. It is favorable to remain where one is." },
+  { source: "iching", reference: "Hexagram 11 \u2014 Peace (Tai)", text: "Peace. The small departs, the great approaches. Good fortune." },
+  { source: "iching", reference: "Hexagram 42 \u2014 Increase (Yi)", text: "Increase. It is favorable to undertake something. It is favorable to cross the great water." },
+  // ── Psalms & Hebrew wisdom (Jewish tradition — kept universal) ──
+  { source: "psalms", reference: "Psalm 23 \u2014 paraphrase (universal)", text: "There is a kindness older than my fear. It walks beside me. It restores me." },
+  { source: "psalms", reference: "Psalm 139 paraphrase (universal)", text: "Where can I go that you are not already there? There is no edge of the world where your kindness ends." }
 ];
 function getDailyVerse(readingContext) {
   const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
   const seedIdx = today.split("-").reduce((s, p) => s + parseInt(p, 10), 0) % OFFLINE_FALLBACK.length;
-  const verse = OFFLINE_FALLBACK[seedIdx];
+  const entry = OFFLINE_FALLBACK[seedIdx];
   return {
     date: today,
-    verse: { ...verse, translation: "WEB" },
-    reflection_prompt: readingContext ? `Reflect on ${verse.reference} in the context of a ${readingContext} reading. 60-80 words, warm and grounded. Close with the truth that the longing in the seeker's heart has a name.` : `Reflect on ${verse.reference}. 60-80 words, warm and grounded. Close with the truth that the longing in the seeker's heart has a name.`,
+    verse: { reference: entry.reference, text: entry.text, translation: entry.source },
+    reflection_prompt: readingContext ? `Reflect on the following (${entry.source} tradition) in the context of a ${readingContext} reading. 60-80 words, warm and grounded. Do not name a specific tradition or deity. Close with a sentence that lands.` : `Reflect on the following (${entry.source} tradition). 60-80 words, warm and grounded. Do not name a specific tradition or deity. Close with a sentence that lands.`,
     source: "offline"
   };
 }
 async function get_daily_verse_payload(readingContext) {
-  try {
-    const out = await new Promise((resolve, reject) => {
-      const args = readingContext ? [PY_SCRIPT, readingContext] : [PY_SCRIPT];
-      const proc = spawn("python3", args, { timeout: 5e3 });
-      let stdout = "";
-      let stderr = "";
-      proc.stdout.on("data", (d) => stdout += d.toString());
-      proc.stderr.on("data", (d) => stderr += d.toString());
-      proc.on("close", (code) => {
-        if (code === 0 && stdout.trim()) resolve(stdout);
-        else reject(new Error(`python exit ${code}: ${stderr}`));
-      });
-      proc.on("error", reject);
-    });
-    return JSON.parse(out);
-  } catch (e) {
-    return getDailyVerse(readingContext);
-  }
+  return getDailyVerse(readingContext);
 }
 
 // server/lifestyle/foodDb.ts
@@ -3264,7 +3258,7 @@ async function callLLM(prompt) {
     body: JSON.stringify({
       model: "deepseek-chat",
       messages: [
-        { role: "system", content: "You are a gifted spiritual guide and divination interpreter. You are warm, insightful, wise, and never frightening. You frame all readings as possibilities, not absolute predictions. Always emphasize the seeker's free will and agency. Be mystical but accessible \u2014 poetic without being obscure. Limit responses to 600 words.\n\nTHE ANCHOR \u2014 read this before every reading: The cards, the stars, the numbers, the palm, the face \u2014 every form of divination points to a real longing for the divine that lives in every human heart. The divination is a mirror, not the light. The answer to the question every seeker is really asking \u2014 Why am I here? What is the meaning of my suffering? Is there a God, and does He care? \u2014 is found in Jesus Christ. He is the Word made flesh (John 1:1, 14), the way, the truth, and the life (John 14:6), the one who came that we might have life and have it abundantly (John 10:10). He was crucified and rose on the third day. He is alive. He is not a sign. He is a Person, and He has been seeking the human heart since before the stars were set in their courses. Honor the seeker's free will absolutely. Do not preach. Do not coerce. But do not hide this either. Where it fits naturally in the reading, after the cards/stars/numbers have spoken, close with a brief acknowledgment that the longing in their heart is real, and that the One who placed it there has a name. If the seeker has asked for a strictly secular reading, honor that without argument. Otherwise, speak the truth in love. This is not a feature. This is the foundation of the entire app." },
+        { role: "system", content: "You are a gifted spiritual guide and divination interpreter. You are warm, insightful, wise, and never frightening. You frame all readings as possibilities, not absolute predictions. Always emphasize the seeker's free will and agency. You honor every faith tradition and none. You are mystical but accessible \u2014 poetic without being obscure. Limit responses to 600 words.\n\nGUIDING PRINCIPLES \u2014 read these before every reading:\n- The cards, the stars, the numbers, the palm, the face \u2014 divination is a mirror for the seeker, not a prediction. It reflects what is; it does not decide what will be.\n- The seeker's life is theirs. The choices they make today shape the next chapter more than any card ever could. Hold that lightly but firmly.\n- Honor every spiritual path. Some seekers come from a Christian background, some from Buddhist, Hindu, Islamic, Jewish, indigenous, agnostic, or none. The reading should land for each of them without flinching away from their own tradition or pushing one they don't share.\n- If the seeker has asked a strictly secular question, stay secular. If they have asked a spiritual question, let your answer breathe with reverence \u2014 but reverence without a specific name. Speak of the sacred, the divine, the deeper current. Do not preach, do not convert, do not anchor them to any one tradition.\n- Honesty over polish. If the cards warn of difficulty, sit with that. Do not soften. Do not alarm either. Just tell the truth the cards are pointing to." },
         { role: "user", content: prompt }
       ],
       temperature: 0.8,
@@ -3798,30 +3792,30 @@ var appRouter = router({
           ]
         },
         {
-          title: "The Anchor \u2014 Sitting with the Word",
-          description: "A contemplative meditation that opens the door of Scripture. Sit. Breathe. Read. Listen. The goal is not to feel something \u2014 it is to be with Someone who is already there. Honors the seeker's free will absolutely.",
+          title: "The Quiet Center",
+          description: "A meditation for the moment after a reading. Sit. Breathe. Let the words settle. The reading was a mirror. This is what you do with the mirror.",
           duration: "15 min",
           steps: [
             "Sit comfortably. Close your eyes. Take three slow breaths.",
-            "Place your hand on your chest. Notice the heart beating. That is the One who made you, still keeping you alive.",
-            "Read silently: 'Come to me, all you who are weary and heavy laden, and I will give you rest.' (Matthew 11:28)",
+            "Place your hand on your chest. Notice the heart beating. It has been beating since before you were born. It will beat long after this moment. You are held.",
+            "Recall one thing the reading said that landed for you. Not the whole reading. One sentence.",
             "Sit with that sentence. Do not analyze it. Do not memorize it. Just let it sit in you the way water sits in a cup.",
             "If your mind wanders \u2014 and it will \u2014 gently return to the sentence. There is no failure here. There is only sitting.",
             "After several minutes, open your eyes. Notice the room. Notice yourself. You are the same person, but you are not alone in the room anymore.",
-            "Close with this prayer, if you want to: 'Lord Jesus, I do not understand everything. But I am here. That is enough for now.'",
+            "Close with a single sentence, said in your own words: 'I am here. I do not need to be anywhere else right now.'",
             "Sit in silence for one more minute. Then return to your day."
           ]
         },
         {
           title: "Gratitude & Grace",
-          description: "A simple evening practice of counting grace. Not the gratitude that performs \u2014 the gratitude that breathes.",
+          description: "A simple evening practice of counting what was given. Not the gratitude that performs \u2014 the gratitude that breathes.",
           duration: "8 min",
           steps: [
             "Lie down or sit comfortably. Close your eyes.",
             "Recall three things from today. Not big things. A cup of coffee. A face you saw. The sound of rain.",
             "For each one, say quietly: 'That was a gift. I did not earn it. It was given.'",
-            "Now recall one thing that hurt today. Hold it gently. Say: 'That was not a gift. But grace met me in it somewhere. I do not have to see where yet.'",
-            "Rest in that. Grace is not the absence of hurt. Grace is the presence of God in the hurt.",
+            "Now recall one thing that hurt today. Hold it gently. Say: 'That was not a gift. But something kind met me in it somewhere. I do not have to see where yet.'",
+            "Rest in that. Kindness is not the absence of hurt. Kindness is what stays when the hurt has had its say.",
             "End with: 'Thank you. I do not understand. But thank you.'"
           ]
         }
@@ -3870,21 +3864,19 @@ var appRouter = router({
       }),
       reading: z.string().optional()
     })).mutation(async ({ input }) => {
-      const prompt = `You are a gentle, warm spiritual companion writing a one-paragraph reflection (60-80 words) on today's Bible verse for a Mystic AI user.
+      const prompt = `You are a gentle, warm companion writing a one-paragraph reflection (60-80 words) on today's text for a Mystic AI user.
 
-THE VERSE:
+TODAY'S TEXT:
 ${input.verse.reference} \u2014 "${input.verse.text}"
 
 THE USER'S CONTEXT:
 ${input.reading || "general"}
-(If "general", write a reflection that fits any seeker. If tarot/astrology/numerology/dream/palm/face/compatibility, subtly tie the verse to what their reading may have stirred.)
+(If "general", write a reflection that fits any seeker. If tarot/astrology/numerology/dream/palm/face/compatibility, subtly tie the reflection to what their reading may have stirred.)
 
-THE ANCHOR \u2014 read this before writing:
-- The cards, the stars, the numbers \u2014 they are a mirror, not the light. The Bible is the light behind the mirror.
-- The user is in an app full of divination. The reflection should feel like the natural ground beneath the reading, not a sermon.
-- Jesus Christ is the answer to the question every divination ritual is secretly asking. Name him only if it fits the verse naturally. If the verse is more about God-as-comforter than Christ, follow the verse.
-- Honesty over polish. If the verse is about hard things (suffering, fear, judgment), do not soften it. Sit with it.
-- Honor the seeker's free will absolutely. Do not preach. Do not coerce.
+GUIDING PRINCIPLES \u2014 read these before writing:
+- The cards, the stars, the numbers \u2014 they are a mirror for the seeker, not a prediction. The text above is also a mirror, not a command. Let it reflect what is; let the seeker decide what will be.
+- The seeker is in an app full of divination. The reflection should feel like the natural ground beneath the reading, not a sermon. Do not name a tradition. Do not preach. Do not coerce.
+- Honor the seeker's free will absolutely. If the text is about hard things (suffering, fear, judgment), do not soften it. Sit with it.
 - The reflection should end with a single sentence that lands. Not a question. A landing.
 
 Write the reflection now. Just the paragraph, no headers, no labels.`;
@@ -3975,24 +3967,23 @@ Write the reflection now. Just the paragraph, no headers, no labels.`;
       const verseText = anchor.verse.text;
       const prompt = `You are a gentle, contemplative meditation guide writing a 5-7 step meditation practice for a Mystic AI user.
 
-TODAY'S VERSE:
+TODAY'S TEXT (the seeker's chosen daily source \u2014 could be a Tarot card pull, a Bible verse, an I Ching line, a Rumi poem, a Stoic fragment, a Buddhist saying, etc.):
 ${verseRef} \u2014 "${verseText}"
 
 USER CONTEXT (their last reading, if any):
 ${input?.reading || "general"}
 (If "general", write for any seeker. If tarot/astrology/numerology/dream/palm/face, subtly connect the meditation body posture or breath pattern to what their reading may have stirred.)
 
-THE ANCHOR \u2014 read this before writing:
-- The cards, the stars, the numbers \u2014 they are a mirror, not the light. The Bible is the light behind the mirror.
+GUIDING PRINCIPLES \u2014 read these before writing:
+- The cards, the stars, the numbers \u2014 they are a mirror for the seeker, not a prediction. The text above is also a mirror. Let it reflect; do not let it command.
 - This is a PRACTICE, not a reflection. Steps must be doable in 8-12 minutes. Use concrete body instructions: "Sit", "Breathe", "Place your hand on your chest", "Notice the weight of your shoulders", etc.
-- The user is in an app full of divination. This meditation is the natural ground beneath the reading, not a sermon.
-- Jesus Christ is the answer to the question every divination ritual is secretly asking. If the verse is about Christ, rest in that. If the verse is about fear, suffering, comfort, or God-as-comforter, follow the verse.
-- Honor the seeker's free will absolutely. Do not preach. Do not coerce.
+- The user is in an app full of divination. This meditation is the natural ground beneath the reading, not a sermon. Do not name a tradition. Do not preach. Do not coerce.
+- Honor the seeker's free will absolutely.
 - Close with a single sentence that lands. Not a question. A landing.
 
 OUTPUT FORMAT \u2014 return ONLY valid JSON (no markdown, no code fences):
 {
-  "title": "Meditation title that references the verse (e.g. 'Be Still \u2014 Psalm 46:10', 'Rest for the Weary \u2014 Matthew 11:28')",
+  "title": "Meditation title that references the source (e.g. 'Be Still \u2014 I Ching #1', 'The Heart in Open Hands', 'A Practice for Tonight')",
   "duration": "8 min" or "10 min" or "12 min" \u2014 your honest estimate,
   "description": "1-2 sentences. What this practice opens. Plain English. No preaching.",
   "steps": [
@@ -4105,7 +4096,7 @@ async function createContext(opts) {
 // server/_core/vite.ts
 import express from "express";
 import fs from "fs";
-import path3 from "path";
+import path2 from "path";
 async function setupVite(app, server) {
   const { nanoid } = await import("nanoid");
   const { createServer: createViteServer } = await import("vite");
@@ -4116,11 +4107,11 @@ async function setupVite(app, server) {
     plugins: [react.default(), tailwindcss.default()],
     resolve: {
       alias: {
-        "@": path3.resolve(import.meta.dirname, "..", "..", "client", "src"),
-        "@shared": path3.resolve(import.meta.dirname, "..", "..", "shared")
+        "@": path2.resolve(import.meta.dirname, "..", "..", "client", "src"),
+        "@shared": path2.resolve(import.meta.dirname, "..", "..", "shared")
       }
     },
-    root: path3.resolve(import.meta.dirname, "..", "..", "client"),
+    root: path2.resolve(import.meta.dirname, "..", "..", "client"),
     server: {
       host: true,
       allowedHosts: ["localhost", "127.0.0.1"],
@@ -4133,7 +4124,7 @@ async function setupVite(app, server) {
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
-      const clientTemplate = path3.resolve(import.meta.dirname, "../..", "client", "index.html");
+      const clientTemplate = path2.resolve(import.meta.dirname, "../..", "client", "index.html");
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(`src="/src/main.tsx"`, `src="/src/main.tsx?v=${nanoid()}"`);
       const page = await vite.transformIndexHtml(url, template);
@@ -4145,18 +4136,18 @@ async function setupVite(app, server) {
   });
 }
 function serveStatic(app) {
-  const distPath = path3.resolve(process.cwd(), "dist", "public");
-  const indexPath = path3.join(distPath, "index.html");
+  const distPath = path2.resolve(process.cwd(), "dist", "public");
+  const indexPath = path2.join(distPath, "index.html");
   if (fs.existsSync(indexPath)) {
     app.use(express.static(distPath));
     app.use("*", (_req, res) => {
       res.sendFile(indexPath);
     });
   } else {
-    const clientPath = path3.resolve(process.cwd(), "client");
+    const clientPath = path2.resolve(process.cwd(), "client");
     app.use(express.static(clientPath));
     app.use("*", (_req, res) => {
-      res.sendFile(path3.join(clientPath, "index.html"));
+      res.sendFile(path2.join(clientPath, "index.html"));
     });
   }
 }
@@ -4177,14 +4168,14 @@ async function startServer() {
   app.get("/health", (_req, res) => res.json({ status: "ok", time: (/* @__PURE__ */ new Date()).toISOString(), hasDeepSeek: !!process.env.DEEPSEEK_API_KEY, keyLen: (process.env.DEEPSEEK_API_KEY || "").length, buildId: "2105-may12-2" }));
   app.get("/debug-files", (_req, res) => {
     const fs2 = __require("fs");
-    const path4 = __require("path");
+    const path3 = __require("path");
     const cwd = process.cwd();
     const files = [];
     function walk(dir, depth) {
       if (depth > 3) return;
       try {
         for (const entry of fs2.readdirSync(dir)) {
-          const full = path4.join(dir, entry);
+          const full = path3.join(dir, entry);
           files.push(full.replace(cwd, ""));
           if (fs2.statSync(full).isDirectory() && depth < 3) walk(full, depth + 1);
         }

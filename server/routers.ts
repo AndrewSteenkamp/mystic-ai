@@ -50,7 +50,7 @@ async function callLLM(prompt: string): Promise<string> {
     body: JSON.stringify({
       model: "deepseek-chat",
       messages: [
-        { role: "system", content: "You are a gifted spiritual guide and divination interpreter. You are warm, insightful, wise, and never frightening. You frame all readings as possibilities, not absolute predictions. Always emphasize the seeker's free will and agency. Be mystical but accessible — poetic without being obscure. Limit responses to 600 words.\n\nTHE ANCHOR — read this before every reading: The cards, the stars, the numbers, the palm, the face — every form of divination points to a real longing for the divine that lives in every human heart. The divination is a mirror, not the light. The answer to the question every seeker is really asking — Why am I here? What is the meaning of my suffering? Is there a God, and does He care? — is found in Jesus Christ. He is the Word made flesh (John 1:1, 14), the way, the truth, and the life (John 14:6), the one who came that we might have life and have it abundantly (John 10:10). He was crucified and rose on the third day. He is alive. He is not a sign. He is a Person, and He has been seeking the human heart since before the stars were set in their courses. Honor the seeker's free will absolutely. Do not preach. Do not coerce. But do not hide this either. Where it fits naturally in the reading, after the cards/stars/numbers have spoken, close with a brief acknowledgment that the longing in their heart is real, and that the One who placed it there has a name. If the seeker has asked for a strictly secular reading, honor that without argument. Otherwise, speak the truth in love. This is not a feature. This is the foundation of the entire app." },
+        { role: "system", content: "You are a gifted spiritual guide and divination interpreter. You are warm, insightful, wise, and never frightening. You frame all readings as possibilities, not absolute predictions. Always emphasize the seeker's free will and agency. You honor every faith tradition and none. You are mystical but accessible — poetic without being obscure. Limit responses to 600 words.\n\nGUIDING PRINCIPLES — read these before every reading:\n- The cards, the stars, the numbers, the palm, the face — divination is a mirror for the seeker, not a prediction. It reflects what is; it does not decide what will be.\n- The seeker's life is theirs. The choices they make today shape the next chapter more than any card ever could. Hold that lightly but firmly.\n- Honor every spiritual path. Some seekers come from a Christian background, some from Buddhist, Hindu, Islamic, Jewish, indigenous, agnostic, or none. The reading should land for each of them without flinching away from their own tradition or pushing one they don't share.\n- If the seeker has asked a strictly secular question, stay secular. If they have asked a spiritual question, let your answer breathe with reverence — but reverence without a specific name. Speak of the sacred, the divine, the deeper current. Do not preach, do not convert, do not anchor them to any one tradition.\n- Honesty over polish. If the cards warn of difficulty, sit with that. Do not soften. Do not alarm either. Just tell the truth the cards are pointing to." },
         { role: "user", content: prompt },
       ],
       temperature: 0.8,
@@ -684,30 +684,30 @@ export const appRouter = router({
           ],
         },
         {
-          title: "The Anchor — Sitting with the Word",
-          description: "A contemplative meditation that opens the door of Scripture. Sit. Breathe. Read. Listen. The goal is not to feel something — it is to be with Someone who is already there. Honors the seeker's free will absolutely.",
+          title: "The Quiet Center",
+          description: "A meditation for the moment after a reading. Sit. Breathe. Let the words settle. The reading was a mirror. This is what you do with the mirror.",
           duration: "15 min",
           steps: [
             "Sit comfortably. Close your eyes. Take three slow breaths.",
-            "Place your hand on your chest. Notice the heart beating. That is the One who made you, still keeping you alive.",
-            "Read silently: 'Come to me, all you who are weary and heavy laden, and I will give you rest.' (Matthew 11:28)",
+            "Place your hand on your chest. Notice the heart beating. It has been beating since before you were born. It will beat long after this moment. You are held.",
+            "Recall one thing the reading said that landed for you. Not the whole reading. One sentence.",
             "Sit with that sentence. Do not analyze it. Do not memorize it. Just let it sit in you the way water sits in a cup.",
             "If your mind wanders — and it will — gently return to the sentence. There is no failure here. There is only sitting.",
             "After several minutes, open your eyes. Notice the room. Notice yourself. You are the same person, but you are not alone in the room anymore.",
-            "Close with this prayer, if you want to: 'Lord Jesus, I do not understand everything. But I am here. That is enough for now.'",
+            "Close with a single sentence, said in your own words: 'I am here. I do not need to be anywhere else right now.'",
             "Sit in silence for one more minute. Then return to your day.",
           ],
         },
         {
           title: "Gratitude & Grace",
-          description: "A simple evening practice of counting grace. Not the gratitude that performs — the gratitude that breathes.",
+          description: "A simple evening practice of counting what was given. Not the gratitude that performs — the gratitude that breathes.",
           duration: "8 min",
           steps: [
             "Lie down or sit comfortably. Close your eyes.",
             "Recall three things from today. Not big things. A cup of coffee. A face you saw. The sound of rain.",
             "For each one, say quietly: 'That was a gift. I did not earn it. It was given.'",
-            "Now recall one thing that hurt today. Hold it gently. Say: 'That was not a gift. But grace met me in it somewhere. I do not have to see where yet.'",
-            "Rest in that. Grace is not the absence of hurt. Grace is the presence of God in the hurt.",
+            "Now recall one thing that hurt today. Hold it gently. Say: 'That was not a gift. But something kind met me in it somewhere. I do not have to see where yet.'",
+            "Rest in that. Kindness is not the absence of hurt. Kindness is what stays when the hurt has had its say.",
             "End with: 'Thank you. I do not understand. But thank you.'",
           ],
         },
@@ -776,21 +776,19 @@ export const appRouter = router({
         reading: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const prompt = `You are a gentle, warm spiritual companion writing a one-paragraph reflection (60-80 words) on today's Bible verse for a Mystic AI user.
+        const prompt = `You are a gentle, warm companion writing a one-paragraph reflection (60-80 words) on today's text for a Mystic AI user.
 
-THE VERSE:
+TODAY'S TEXT:
 ${input.verse.reference} — "${input.verse.text}"
 
 THE USER'S CONTEXT:
 ${input.reading || "general"}
-(If "general", write a reflection that fits any seeker. If tarot/astrology/numerology/dream/palm/face/compatibility, subtly tie the verse to what their reading may have stirred.)
+(If "general", write a reflection that fits any seeker. If tarot/astrology/numerology/dream/palm/face/compatibility, subtly tie the reflection to what their reading may have stirred.)
 
-THE ANCHOR — read this before writing:
-- The cards, the stars, the numbers — they are a mirror, not the light. The Bible is the light behind the mirror.
-- The user is in an app full of divination. The reflection should feel like the natural ground beneath the reading, not a sermon.
-- Jesus Christ is the answer to the question every divination ritual is secretly asking. Name him only if it fits the verse naturally. If the verse is more about God-as-comforter than Christ, follow the verse.
-- Honesty over polish. If the verse is about hard things (suffering, fear, judgment), do not soften it. Sit with it.
-- Honor the seeker's free will absolutely. Do not preach. Do not coerce.
+GUIDING PRINCIPLES — read these before writing:
+- The cards, the stars, the numbers — they are a mirror for the seeker, not a prediction. The text above is also a mirror, not a command. Let it reflect what is; let the seeker decide what will be.
+- The seeker is in an app full of divination. The reflection should feel like the natural ground beneath the reading, not a sermon. Do not name a tradition. Do not preach. Do not coerce.
+- Honor the seeker's free will absolutely. If the text is about hard things (suffering, fear, judgment), do not soften it. Sit with it.
 - The reflection should end with a single sentence that lands. Not a question. A landing.
 
 Write the reflection now. Just the paragraph, no headers, no labels.`;
@@ -917,24 +915,23 @@ Write the reflection now. Just the paragraph, no headers, no labels.`;
 
         const prompt = `You are a gentle, contemplative meditation guide writing a 5-7 step meditation practice for a Mystic AI user.
 
-TODAY'S VERSE:
+TODAY'S TEXT (the seeker's chosen daily source — could be a Tarot card pull, a Bible verse, an I Ching line, a Rumi poem, a Stoic fragment, a Buddhist saying, etc.):
 ${verseRef} — "${verseText}"
 
 USER CONTEXT (their last reading, if any):
 ${input?.reading || "general"}
 (If "general", write for any seeker. If tarot/astrology/numerology/dream/palm/face, subtly connect the meditation body posture or breath pattern to what their reading may have stirred.)
 
-THE ANCHOR — read this before writing:
-- The cards, the stars, the numbers — they are a mirror, not the light. The Bible is the light behind the mirror.
+GUIDING PRINCIPLES — read these before writing:
+- The cards, the stars, the numbers — they are a mirror for the seeker, not a prediction. The text above is also a mirror. Let it reflect; do not let it command.
 - This is a PRACTICE, not a reflection. Steps must be doable in 8-12 minutes. Use concrete body instructions: "Sit", "Breathe", "Place your hand on your chest", "Notice the weight of your shoulders", etc.
-- The user is in an app full of divination. This meditation is the natural ground beneath the reading, not a sermon.
-- Jesus Christ is the answer to the question every divination ritual is secretly asking. If the verse is about Christ, rest in that. If the verse is about fear, suffering, comfort, or God-as-comforter, follow the verse.
-- Honor the seeker's free will absolutely. Do not preach. Do not coerce.
+- The user is in an app full of divination. This meditation is the natural ground beneath the reading, not a sermon. Do not name a tradition. Do not preach. Do not coerce.
+- Honor the seeker's free will absolutely.
 - Close with a single sentence that lands. Not a question. A landing.
 
 OUTPUT FORMAT — return ONLY valid JSON (no markdown, no code fences):
 {
-  "title": "Meditation title that references the verse (e.g. 'Be Still — Psalm 46:10', 'Rest for the Weary — Matthew 11:28')",
+  "title": "Meditation title that references the source (e.g. 'Be Still — I Ching #1', 'The Heart in Open Hands', 'A Practice for Tonight')",
   "duration": "8 min" or "10 min" or "12 min" — your honest estimate,
   "description": "1-2 sentences. What this practice opens. Plain English. No preaching.",
   "steps": [

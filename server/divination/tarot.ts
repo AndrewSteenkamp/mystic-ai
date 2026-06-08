@@ -108,8 +108,7 @@ Please provide a thoughtful, personalized reading. Structure your response as:
 1. **The Cards** — Briefly describe what each card represents in this position
 2. **The Story** — Weave the cards together into a coherent narrative that answers the seeker's question
 3. **The Guidance** — Offer 2-3 specific, actionable pieces of advice based on the reading
-4. **Reflection** — A gentle closing thought
-5. **The Final Word** — An honest acknowledgment that the cards point to a real longing for the divine that lives in every human heart, and that the cards themselves are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ — the person, not a method. Reference the same longing the cards describe, and affirm that the One who made the human heart is the One who satisfies it. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it — your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
+4. **Reflection** — A gentle closing thought that honors the seeker's own spiritual path or absence of one. If they have a faith, let the close breathe with reverence; if they don't, let it breathe with the secular sacred — the depth of the moment, the truth of being here, the choice that lies ahead. Do not push any one tradition. Do not quote scripture unless the seeker's own words clearly invite it.
 
 Important guidelines:
 - Be warm, kind, and never frightening — even challenging cards bring growth

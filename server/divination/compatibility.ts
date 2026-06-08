@@ -208,5 +208,5 @@ Sun: ${score.breakdown.sun}/25 | Moon: ${score.breakdown.moon}/25 | Rising: ${sc
 
 Write a warm, poetic 3-4 sentence match description that captures the essence of this connection. Make it feel magical but grounded. Mention specific sign interactions. Keep it under 150 words.
 
-Then add a final line: the compatibility score is a mirror, not the Maker. Two people are drawn together for reasons that go deeper than the stars. Honor the connection, but gently name the answer to the question behind every love reading: Jesus Christ. If it fits, add "And now abide faith, hope, love, these three; but the greatest of these is love." (1 Corinthians 13:13)`;
+Then add a final line: the compatibility score is a mirror, not the whole picture. Two people are drawn together for reasons that go deeper than the stars. Honor the connection. Close with a single sentence that lands — one that any seeker, of any path or none, can take home. Do not quote scripture. Do not name a tradition. Let the moment be its own truth.`;
 }

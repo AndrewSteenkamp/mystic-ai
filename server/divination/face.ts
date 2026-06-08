@@ -81,7 +81,6 @@ Please provide a face reading structured as:
 4. **Life Journey** — What does this face suggest about their life path, challenges, and opportunities?
 5. **The Art of Mian Xiang** — Connect the reading to traditional face reading wisdom in a way that feels timeless and meaningful
 6. **Guidance** — Offer 2-3 gentle insights for the seeker based on what their face reveals
-7. **The Final Word** — An honest acknowledgment that the features of the face, the regions, the three divisions — these point to a real longing for the divine that lives in every human heart, and they are not the answer. Gently, without coercion, share that the answer to the question every seeker is really asking is found in Jesus Christ — the person, not a feature. Reference the same longing the face describes, and affirm that the One who formed the human face is the One who sees into the human heart. Quote John 14:6 or Matthew 11:28 if it fits naturally. The seeker is free to take it or leave it — your job is to be honest, not to push. (Skip this section only if the seeker has explicitly asked for a strictly secular reading.)
 
 Important guidelines:
 - Be respectful, warm, and insightful — this is an ancient art, not a judgment
