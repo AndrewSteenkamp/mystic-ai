@@ -149,10 +149,12 @@ export async function initializePaystackTransaction(
   email: string,
   callbackUrl?: string,
   metadata?: Record<string, unknown>,
+  currency: string = "USD",
 ): Promise<InitializeTransactionData> {
   const payload: Record<string, unknown> = {
     amount: Math.round(amount), // ensure integer cents
     email,
+    currency,
   };
 
   if (callbackUrl) {
@@ -393,7 +395,7 @@ export async function handlePaystackWebhook(
     }
 
     case "subscription.create": {
-      // New subscription created — R99 monthly or R799 annual
+      // New subscription created — $4.99 monthly or $39 annual
       return {
         acknowledged: true,
         event: eventType,
@@ -483,7 +485,7 @@ export async function createPaystackPlan(
     name: params.name,
     amount: Math.round(params.amount),
     interval: params.interval,
-    currency: params.currency || "ZAR",
+    currency: params.currency || "USD",
   };
 
   if (params.description) {
@@ -510,18 +512,20 @@ export async function createPaystackPlan(
 // ===========================================================================
 
 export const MYSTIC_PLANS = {
-  /** Single fortune reading — R29.00 */
-  singleReading: { amount: 2900, description: "Single fortune reading" },
-  /** Monthly subscription — R99.00 */
+  /** Single fortune reading — $1.99 USD */
+  singleReading: { amount: 199, currency: "USD", description: "Single fortune reading" },
+  /** Monthly subscription — $4.99 USD */
   monthlySubscription: {
-    amount: 9900,
+    amount: 499,
+    currency: "USD",
     interval: "monthly" as const,
     name: "Mystic Monthly",
     description: "Unlimited fortune readings — monthly",
   },
-  /** Annual subscription — R799.00 */
+  /** Annual subscription — $39 USD (save 33% vs $4.99 × 12) */
   annualSubscription: {
-    amount: 79900,
+    amount: 3900,
+    currency: "USD",
     interval: "annually" as const,
     name: "Mystic Annual",
     description: "Unlimited fortune readings — annual (save 33%)",

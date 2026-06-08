@@ -31,6 +31,7 @@ import { get_daily_verse_payload } from "./divination/daily_verse";
 import { searchFoods, getFoodById, getFoodsByCategory, getDbStats, FoodItem } from "./lifestyle/foodDb";
 import { identifyFoodFromImage, logFoodMiss, getFoodMisses } from "./lifestyle/foodIdentifier";
 import { calculateNutrition, calculateMeal } from "./lifestyle/kjCalculator";
+import { DAILY_SOURCES, getDailyInsightForSource, getUserDailySource, setUserDailySource } from "./lifestyle/dailySource";
 
 // ---- LLM Helper ----
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
@@ -1005,6 +1006,48 @@ RULES:
             },
           };
         }
+      }),
+
+    // ════════════════════════════════════════════════════════════
+    // ── DAILY INSIGHT (Plan D — user-selectable source) ──
+    // ════════════════════════════════════════════════════════════
+
+    // All 8 available sources, with their description, emoji, and category.
+    // Client uses this to render the source picker on the Lifestyle page.
+    getDailySources: publicProcedure.query(() => {
+      return DAILY_SOURCES;
+    }),
+
+    // Returns the user's currently-chosen source, or 'tarot' if they
+    // haven't picked yet. Anonymous users always get 'tarot'.
+    myDailySource: publicProcedure.query(({ ctx }) => {
+      if (!ctx.user) return { source: "tarot", isDefault: true };
+      const source = getUserDailySource(ctx.user.id);
+      return { source, isDefault: source === "tarot" };
+    }),
+
+    // User picks their daily source. Persisted in user_preferences.
+    setMyDailySource: protectedProcedure
+      .input(z.object({ source: z.string() }))
+      .mutation(({ input, ctx }) => {
+        const ok = setUserDailySource(ctx.user.id, input.source);
+        return { ok, source: ok ? input.source : getUserDailySource(ctx.user.id) };
+      }),
+
+    // Returns today's insight for a given source. The same source+date
+    // combination always returns the same entry. Honors the user's
+    // stored preference if no source is provided. Backwards-compatible
+    // with the old dailyAnchor: if a reading context is passed, the
+    // reflection prompt adjusts to it.
+    getDailyInsight: publicProcedure
+      .input(z.object({
+        source: z.string().optional(),
+        reading: z.string().optional(),
+      }).optional())
+      .query(({ input, ctx }) => {
+        const source = input?.source
+          || (ctx.user ? getUserDailySource(ctx.user.id) : "tarot");
+        return getDailyInsightForSource(source);
       }),
   }),
 });

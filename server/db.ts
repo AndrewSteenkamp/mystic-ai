@@ -208,6 +208,26 @@ function initSchema(db: Database.Database) {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
     CREATE INDEX IF NOT EXISTS idx_food_calc_user ON food_calculations(user_id, created_at);
+
+    CREATE TABLE IF NOT EXISTS user_preferences (
+      user_id INTEGER PRIMARY KEY,
+      daily_source TEXT NOT NULL DEFAULT 'tarot',
+      notify_daily INTEGER NOT NULL DEFAULT 1,
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS daily_insight_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      source TEXT NOT NULL,
+      reference TEXT NOT NULL,
+      text TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_daily_insight_user_date ON daily_insight_history(user_id, date);
   `);
 }
 

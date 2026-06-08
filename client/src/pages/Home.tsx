@@ -47,12 +47,12 @@ function DailyAnchor() {
           setReflection(res.reflection);
           localStorage.setItem(`mystic_daily_reflection_${today}`, res.reflection);
         } else {
-          // Fallback: build a reflection from the verse text itself
-          const fb = `Today: ${anchor.verse.reference}. The cards above are a mirror. This is the light behind the mirror.`;
+          // Fallback: build a reflection from the text itself
+          const fb = `Today: ${anchor.verse.reference}. The cards above are a mirror. What you do with the mirror is yours.`;
           setReflection(fb);
         }
       } catch {
-        const fb = `Today: ${anchor.verse.reference}. The cards above are a mirror. This is the light behind the mirror.`;
+        const fb = `Today: ${anchor.verse.reference}. The cards above are a mirror. What you do with the mirror is yours.`;
         setReflection(fb);
       } finally {
         setLoading(false);
@@ -64,11 +64,11 @@ function DailyAnchor() {
 
   return (
     <div className="mb-6 rounded-2xl bg-gradient-to-br from-amber-900/20 via-yellow-900/15 to-orange-900/20 border border-amber-500/20 p-5 text-center">
-      <div className="text-xs font-bold text-amber-300/80 uppercase tracking-widest mb-2">Today's Anchor</div>
+      <div className="text-xs font-bold text-amber-300/80 uppercase tracking-widest mb-2">Today's Insight</div>
       <div className="text-sm text-amber-100 italic leading-relaxed mb-2">
         "{anchor.verse.text}"
       </div>
-      <div className="text-xs text-amber-200/60 mb-3">— {anchor.verse.reference} ({anchor.verse.translation})</div>
+      <div className="text-xs text-amber-200/60 mb-3">— {anchor.verse.reference} <span className="text-amber-300/40">·</span> from {anchor.verse.translation}</div>
       {loading ? (
         <div className="flex items-center justify-center gap-2 text-xs text-amber-200/50">
           <Loader2 className="w-3 h-3 animate-spin" /> drawing a reflection for today…

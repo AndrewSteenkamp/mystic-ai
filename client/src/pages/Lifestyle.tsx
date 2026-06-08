@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
-import { BookOpen, Utensils, Sparkles, Save, ShoppingBag, ExternalLink, Heart, ChefHat, ListChecks, ShoppingCart, Calendar, RefreshCw, Camera, Calculator, Loader2, Lock, Eye } from "lucide-react";
+import { BookOpen, Utensils, Sparkles, Save, ShoppingBag, ExternalLink, Heart, ChefHat, ListChecks, ShoppingCart, Calendar, RefreshCw, Camera, Calculator, Loader2, Lock, Eye, Settings } from "lucide-react";
 import FoodIdentifier from "./FoodIdentifier";
 import KJCalculator from "./KJCalculator";
+import DailySourcePicker from "../components/DailySourcePicker";
 
 // Alpapies is not live yet. When it goes live, set this to true.
 // Until then the Shop tab is hidden from regular users and only visible
@@ -15,6 +16,7 @@ const TABS = [
   { key: "mealplan", label: "Meals", icon: Calendar },
   { key: "foodid", label: "Identify", icon: Camera },
   { key: "kjcalc", label: "kJ Calc", icon: Calculator },
+  { key: "source", label: "Source", icon: Settings },
   { key: "meditation", label: "Meditate", icon: Sparkles },
   { key: "shop", label: "Shop", icon: ShoppingBag },
 ];
@@ -468,6 +470,9 @@ export default function LifestylePage() {
 
       {/* Food Identifier Tab */}
       {tab === "foodid" && <FoodIdentifier />}
+
+      {/* Daily Source Tab — user picks which tradition their daily insight comes from */}
+      {tab === "source" && <DailySourcePicker />}
 
       {/* kJ Calculator Tab */}
       {tab === "kjcalc" && <KJCalculator />}
