@@ -5,7 +5,7 @@
 # - Forwards PYTHON env so gyp's PythonFinder doesn't fail.
 
 [phases.setup]
-nixPkgs = ["...", "python311"]
+nixPkgs = ["...", "python311", "gcc", "g++", "make", "pkg-config"]
 
 [phases.install]
 cmds = ["pnpm i --frozen-lockfile"]
