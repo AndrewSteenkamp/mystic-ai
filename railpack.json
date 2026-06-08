@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "buildAptPackages": ["python3", "python3-pip", "build-essential", "pkg-config", "make"],
+  "packages": {
+    "node": "18"
+  },
+  "deploy": {
+    "startCommand": "node dist/index.js"
+  }
+}

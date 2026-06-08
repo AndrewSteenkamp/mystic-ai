@@ -1,8 +1,4 @@
 {
-  "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "echo 'dist is pre-built'"
-  },
   "deploy": {
     "startCommand": "node dist/index.js",
     "healthcheckPath": "/health",
