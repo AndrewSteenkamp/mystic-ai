@@ -616,7 +616,6 @@ export const appRouter = router({
     meditationGuide: publicProcedure.query(async () => {
       return [
         {
-          title: "Morning Mindfulness",
           description: "Start your day with clarity and intention through this gentle awakening practice.",
           duration: "10 min",
           steps: [
@@ -901,6 +900,113 @@ Write the reflection now. Just the paragraph, no headers, no labels.`;
           ).all(ctx.user.id, input?.limit ?? 20) as any[];
         } catch {
           return [];
+        }
+      }),
+
+    // ── Daily Meditation (AI-generated, tied to today's Bible verse) ──
+    // Different from dailyReflection: this is a 5-7 step PRACTICE you can
+    // do right now, not a paragraph of reflection. Tied to the same daily
+    // verse so the app feels coherent across Home + Lifestyle.
+    dailyMeditation: publicProcedure
+      .input(z.object({ reading: z.string().optional() }).optional())
+      .mutation(async ({ input }) => {
+        // Reuse the daily anchor logic so the meditation ties to today's verse
+        const anchor = await get_daily_verse_payload(input?.reading || "general");
+        const verseRef = anchor.verse.reference;
+        const verseText = anchor.verse.text;
+
+        const prompt = `You are a gentle, contemplative meditation guide writing a 5-7 step meditation practice for a Mystic AI user.
+
+TODAY'S VERSE:
+${verseRef} — "${verseText}"
+
+USER CONTEXT (their last reading, if any):
+${input?.reading || "general"}
+(If "general", write for any seeker. If tarot/astrology/numerology/dream/palm/face, subtly connect the meditation body posture or breath pattern to what their reading may have stirred.)
+
+THE ANCHOR — read this before writing:
+- The cards, the stars, the numbers — they are a mirror, not the light. The Bible is the light behind the mirror.
+- This is a PRACTICE, not a reflection. Steps must be doable in 8-12 minutes. Use concrete body instructions: "Sit", "Breathe", "Place your hand on your chest", "Notice the weight of your shoulders", etc.
+- The user is in an app full of divination. This meditation is the natural ground beneath the reading, not a sermon.
+- Jesus Christ is the answer to the question every divination ritual is secretly asking. If the verse is about Christ, rest in that. If the verse is about fear, suffering, comfort, or God-as-comforter, follow the verse.
+- Honor the seeker's free will absolutely. Do not preach. Do not coerce.
+- Close with a single sentence that lands. Not a question. A landing.
+
+OUTPUT FORMAT — return ONLY valid JSON (no markdown, no code fences):
+{
+  "title": "Meditation title that references the verse (e.g. 'Be Still — Psalm 46:10', 'Rest for the Weary — Matthew 11:28')",
+  "duration": "8 min" or "10 min" or "12 min" — your honest estimate,
+  "description": "1-2 sentences. What this practice opens. Plain English. No preaching.",
+  "steps": [
+    "Find a comfortable seated position. Close your eyes. Place both hands on your knees.",
+    "Take three slow, deep breaths. Inhale through your nose, feeling your chest rise.",
+    "Bring your attention to your heart center. Place your right hand gently over your heart.",
+    "Read the verse silently, slowly, two or three times. Let each word settle before the next.",
+    "Sit with whatever arises — comfort, restlessness, tears, silence. Do not analyze. Just be with it.",
+    "After several minutes, place both hands back on your knees. Gently open your eyes.",
+    "Carry this stillness with you into the next hour. The verse goes with you."
+  ],
+  "closingLine": "One sentence that lands at the end. Not a question."
+}
+
+RULES:
+- title MUST include the verse reference. Not optional.
+- 5-7 steps. Not 3, not 10.
+- Each step 10-20 words. Concrete. Actionable.
+- DO NOT prefix steps with 'Step 1:', 'Step 2:', '1.', '2.' or any numbering. The steps array is already ordered.
+- description and closingLine are 1 sentence each.
+- Do NOT add commentary outside the JSON.`;
+
+        try {
+          const raw = await callLLM(prompt);
+          // Strip markdown code fences if present
+          let json = raw.trim();
+          if (json.startsWith("```")) {
+            json = json.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+          }
+          const parsed = JSON.parse(json);
+
+          // Validate minimum shape
+          if (!parsed.title || !Array.isArray(parsed.steps) || parsed.steps.length < 3) {
+            throw new Error("Invalid shape from LLM");
+          }
+
+          return {
+            meditation: {
+              title: parsed.title,
+              duration: parsed.duration || "10 min",
+              description: parsed.description || "",
+              steps: parsed.steps,
+              closingLine: parsed.closingLine || "",
+              verseRef,
+              verseText,
+              date: anchor.date,
+              source: "ai",
+            },
+          };
+        } catch (e) {
+          console.warn("[dailyMeditation] LLM failed, using fallback:", (e as Error).message);
+          // Fallback: a generic, simple meditation that's still verse-tied
+          return {
+            meditation: {
+              title: `Be Still — ${verseRef}`,
+              duration: "8 min",
+              description: `A simple breath practice anchored in today's verse: "${verseText.slice(0, 80)}..."`,
+              steps: [
+                "Sit comfortably. Close your eyes. Take three slow breaths.",
+                "Place your hand on your chest. Notice the heart beating. That is the One who made you, still keeping you alive.",
+                `Read silently: "${verseText.slice(0, 100)}${verseText.length > 100 ? "..." : ""}"`,
+                "Sit with that sentence. Do not analyze it. Just let it sit in you.",
+                "If your mind wanders — and it will — gently return to the sentence. There is no failure here. There is only sitting.",
+                "After several minutes, open your eyes. Notice the room. Notice yourself. You are the same person, but you are not alone in the room anymore.",
+              ],
+              closingLine: "Sit in silence for one more minute. Then return to your day.",
+              verseRef,
+              verseText,
+              date: anchor.date,
+              source: "fallback",
+            },
+          };
         }
       }),
   }),

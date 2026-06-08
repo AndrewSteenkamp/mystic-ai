@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
-import { BookOpen, Utensils, Sparkles, Save, ShoppingBag, ExternalLink, Heart, ChefHat, ListChecks, ShoppingCart, Calendar, RefreshCw, Camera, Calculator } from "lucide-react";
+import { BookOpen, Utensils, Sparkles, Save, ShoppingBag, ExternalLink, Heart, ChefHat, ListChecks, ShoppingCart, Calendar, RefreshCw, Camera, Calculator, Loader2, Lock, Eye } from "lucide-react";
 import FoodIdentifier from "./FoodIdentifier";
 import KJCalculator from "./KJCalculator";
+
+// Alpapies is not live yet. When it goes live, set this to true.
+// Until then the Shop tab is hidden from regular users and only visible
+// to admins (user id 1, the local dummy user) so we can review the layout.
+const SHOP_LIVE = false;
 
 const TABS = [
   { key: "journal", label: "Journal", icon: BookOpen },
@@ -266,10 +271,20 @@ export default function LifestylePage() {
   const { data: journals, refetch: refetchJournals } = trpc.lifestyle.journalEntries.useQuery();
   const { data: dietPlans, refetch: refetchDiets } = trpc.lifestyle.dietPlans.useQuery();
   const { data: meditations } = trpc.lifestyle.meditationGuide.useQuery();
+  const { data: user } = trpc.auth.me.useQuery();
   const saveJournal = trpc.lifestyle.saveJournal.useMutation({ onSuccess: () => { setJournalTitle(""); setJournalContent(""); setJournalMood(""); refetchJournals(); } });
   const saveDiet = trpc.lifestyle.saveDietPlan.useMutation({ onSuccess: () => { setDietType(""); setDietMeals(""); setDietCalories(""); refetchDiets(); } });
 
   const moods = ["😊", "😌", "😔", "😤", "🤔", "😴", "💪", "🙏"];
+
+  // Shop tab visibility: visible to everyone when SHOP_LIVE is true,
+  // OR visible only to admin (user id 1) when SHOP_LIVE is false.
+  // Regular users see no Shop tab in the nav at all.
+  const isAdmin = user?.id === 1;
+  const visibleTabs = TABS.filter(t => {
+    if (t.key === "shop") return SHOP_LIVE || isAdmin;
+    return true;
+  });
 
   return (
     <div className="max-w-lg mx-auto">
@@ -280,7 +295,7 @@ export default function LifestylePage() {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 flex-wrap">
-        {TABS.map(t => (
+        {visibleTabs.map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
@@ -363,46 +378,92 @@ export default function LifestylePage() {
         </div>
       )}
 
-      {/* Meditation Tab */}
+      {/* Meditation Tab — Daily AI meditation + browse all static */}
       {tab === "meditation" && (
         <div className="space-y-4">
-          {(meditations as any[] || []).map((m: any, i: number) => (
-            <div key={i} className="glass-card rounded-xl p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-purple-900/50 flex items-center justify-center text-lg">
-                  {i === 0 ? "🌅" : i === 1 ? "🟣" : i === 2 ? "💗" : i === 3 ? "🧘" : "⭐"}
+          <DailyMeditation />
+          {(meditations as any[] || []).length > 0 && (
+            <>
+              <div className="text-xs text-gray-500 uppercase tracking-widest pt-2">Browse all practices</div>
+              {(meditations as any[] || []).map((m: any, i: number) => (
+                <div key={i} className="glass-card rounded-xl p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-purple-900/50 flex items-center justify-center text-lg">
+                      {i === 0 ? "🌅" : i === 1 ? "🟣" : i === 2 ? "💗" : i === 3 ? "🧘" : "⭐"}
+                    </div>
+                    <div><div className="font-medium text-sm">{m.title}</div><div className="text-xs text-purple-400">{m.duration}</div></div>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-3">{m.description}</p>
+                  <div className="space-y-1.5">
+                    {m.steps.map((s: string, j: number) => (
+                      <div key={j} className="flex items-start gap-2 text-sm text-gray-300"><span className="text-purple-400 font-medium min-w-[20px]">{j + 1}.</span>{s}</div>
+                    ))}
+                  </div>
                 </div>
-                <div><div className="font-medium text-sm">{m.title}</div><div className="text-xs text-purple-400">{m.duration}</div></div>
-              </div>
-              <p className="text-sm text-gray-400 mb-3">{m.description}</p>
-              <div className="space-y-1.5">
-                {m.steps.map((s: string, j: number) => (
-                  <div key={j} className="flex items-start gap-2 text-sm text-gray-300"><span className="text-purple-400 font-medium min-w-[20px]">{j + 1}.</span>{s}</div>
-                ))}
-              </div>
-            </div>
-          ))}
+              ))}
+            </>
+          )}
         </div>
       )}
 
-      {/* Shop Tab */}
+      {/* Shop Tab — admin-only until Alpapies is live */}
       {tab === "shop" && (
-        <div className="space-y-4">
-          <div className="glass-card rounded-xl p-4 text-center">
-            <p className="text-sm text-gray-300 mb-2">Wellness products — powered by <span className="text-purple-400 font-medium">Alpapies</span></p>
-            <a href="https://alpapies.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300">Visit Alpapies Store <ExternalLink className="w-3 h-3" /></a>
+        isAdmin && !SHOP_LIVE ? (
+          <div className="space-y-4">
+            <div className="glass-card rounded-xl p-5 border border-amber-700/50 bg-amber-900/20">
+              <div className="flex items-start gap-3">
+                <Eye className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-medium text-amber-200 mb-1">Admin preview — Alpapies is not live yet</h3>
+                  <p className="text-xs text-amber-300/70">
+                    You're seeing this Shop tab because you're signed in as the admin. Regular users
+                    cannot see this tab until <code className="bg-amber-900/40 px-1 rounded">SHOP_LIVE = true</code> in Lifestyle.tsx.
+                    Toggle it on when Alpapies is ready to receive traffic.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="glass-card rounded-xl p-4 text-center">
+              <p className="text-sm text-gray-300 mb-2">Wellness products — powered by <span className="text-purple-400 font-medium">Alpapies</span></p>
+              <a href="https://alpapies.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300">Visit Alpapies Store <ExternalLink className="w-3 h-3" /></a>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {SHOP_PRODUCTS.map((p, i) => (
+                <a key={i} href={p.link} target="_blank" rel="noopener noreferrer" className="glass-card rounded-xl p-4 hover:border-purple-500/50 transition-all cursor-pointer group">
+                  <div className="text-xs text-purple-400 mb-1">{p.category}</div>
+                  <div className="font-medium text-sm mb-1 group-hover:text-purple-300">{p.name}</div>
+                  <div className="text-xs text-gray-500 mb-2">{p.desc}</div>
+                  <div className="flex items-center justify-between"><span className="text-sm font-bold text-purple-300">{p.price}</span><ShoppingBag className="w-4 h-4 text-purple-500" /></div>
+                </a>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {SHOP_PRODUCTS.map((p, i) => (
-              <a key={i} href={p.link} target="_blank" rel="noopener noreferrer" className="glass-card rounded-xl p-4 hover:border-purple-500/50 transition-all cursor-pointer group">
-                <div className="text-xs text-purple-400 mb-1">{p.category}</div>
-                <div className="font-medium text-sm mb-1 group-hover:text-purple-300">{p.name}</div>
-                <div className="text-xs text-gray-500 mb-2">{p.desc}</div>
-                <div className="flex items-center justify-between"><span className="text-sm font-bold text-purple-300">{p.price}</span><ShoppingBag className="w-4 h-4 text-purple-500" /></div>
-              </a>
-            ))}
+        ) : isAdmin ? (
+          // Alpapies is live + admin: full shop
+          <div className="space-y-4">
+            <div className="glass-card rounded-xl p-4 text-center">
+              <p className="text-sm text-gray-300 mb-2">Wellness products — powered by <span className="text-purple-400 font-medium">Alpapies</span></p>
+              <a href="https://alpapies.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300">Visit Alpapies Store <ExternalLink className="w-3 h-3" /></a>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {SHOP_PRODUCTS.map((p, i) => (
+                <a key={i} href={p.link} target="_blank" rel="noopener noreferrer" className="glass-card rounded-xl p-4 hover:border-purple-500/50 transition-all cursor-pointer group">
+                  <div className="text-xs text-purple-400 mb-1">{p.category}</div>
+                  <div className="font-medium text-sm mb-1 group-hover:text-purple-300">{p.name}</div>
+                  <div className="text-xs text-gray-500 mb-2">{p.desc}</div>
+                  <div className="flex items-center justify-between"><span className="text-sm font-bold text-purple-300">{p.price}</span><ShoppingBag className="w-4 h-4 text-purple-500" /></div>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          // Non-admin somehow landed on the shop tab — show empty state
+          <div className="glass-card rounded-xl p-6 text-center">
+            <Lock className="w-8 h-8 mx-auto text-gray-600 mb-2" />
+            <h3 className="text-sm font-medium text-gray-300">Shop is not available yet</h3>
+            <p className="text-xs text-gray-500 mt-1">Our wellness store is coming soon.</p>
+          </div>
+        )
       )}
 
       {/* Food Identifier Tab */}
@@ -410,6 +471,95 @@ export default function LifestylePage() {
 
       {/* kJ Calculator Tab */}
       {tab === "kjcalc" && <KJCalculator />}
+    </div>
+  );
+}
+
+// ── Daily AI Meditation (featured at top of meditation tab) ──
+
+function DailyMeditation() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const generateMutation = trpc.lifestyle.dailyMeditation.useMutation();
+
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    const cached = localStorage.getItem(`mystic_daily_meditation_${today}`);
+    if (cached) {
+      try { setData(JSON.parse(cached)); return; } catch { /* fall through */ }
+    }
+    // No cache — generate one
+    setLoading(true);
+    generateMutation.mutate(undefined, {
+      onSuccess: (res) => {
+        setData(res.meditation);
+        localStorage.setItem(`mystic_daily_meditation_${today}`, JSON.stringify(res.meditation));
+        setLoading(false);
+      },
+      onError: (e) => {
+        setError(e.message);
+        setLoading(false);
+      },
+    });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center gap-3 text-purple-300">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <div>
+            <div className="text-sm font-medium">Drawing today's meditation…</div>
+            <div className="text-xs text-purple-400/60">Anchoring to today's verse</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="glass-card rounded-2xl p-5 border border-rose-700/50 bg-rose-900/20">
+        <div className="text-sm text-rose-200">Could not generate today's meditation: {error}</div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  return (
+    <div className="glass-card rounded-2xl p-5 border border-amber-700/30 bg-gradient-to-br from-amber-900/10 via-purple-900/10 to-pink-900/10">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[10px] uppercase tracking-widest text-amber-300/80">Today's Meditation · {data.date}</div>
+        <div className="text-[10px] text-amber-300/50">{data.duration}</div>
+      </div>
+      <h3 className="text-lg font-bold text-gray-100 mb-1">{data.title}</h3>
+      {data.description && (
+        <p className="text-xs text-gray-400 mb-3 italic">{data.description}</p>
+      )}
+      {data.verseText && (
+        <div className="bg-amber-900/15 border-l-2 border-amber-500/50 rounded-r-lg px-3 py-2 mb-3">
+          <div className="text-xs text-amber-100/80 italic">"{data.verseText.length > 200 ? data.verseText.slice(0, 200) + "..." : data.verseText}"</div>
+          <div className="text-[10px] text-amber-300/60 mt-1">— {data.verseRef}</div>
+        </div>
+      )}
+      <div className="space-y-1.5 mb-3">
+        {data.steps.map((step: string, i: number) => (
+          <div key={i} className="flex items-start gap-2 text-sm text-gray-200">
+            <span className="text-purple-400 font-medium min-w-[20px]">{i + 1}.</span>
+            <span>{step}</span>
+          </div>
+        ))}
+      </div>
+      {data.closingLine && (
+        <div className="border-t border-amber-700/30 pt-3 text-sm text-amber-100/90 italic">
+          {data.closingLine}
+        </div>
+      )}
+      {data.source === "fallback" && (
+        <div className="mt-3 text-[10px] text-gray-500 italic">A simpler practice today — the AI guide was unavailable.</div>
+      )}
     </div>
   );
 }

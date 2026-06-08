@@ -1879,7 +1879,39 @@ function generateFallback(prompt) {
       ]
     });
   }
+  if (prompt.includes("7-day meal plan") || prompt.includes("Create a 7-day") || prompt.includes("weekly menu") || prompt.includes("weekly meal")) {
+    return JSON.stringify(generateFallbackWeeklyMenu());
+  }
   return JSON.stringify({ message: "Plan generated \u2014 customize in the app." });
+}
+function generateFallbackWeeklyMenu() {
+  const simpleMeal = (name, ings, time, cal) => ({
+    name,
+    ingredients: ings,
+    instructions: `Prepare ${name.toLowerCase()} using the listed ingredients.`,
+    prepTime: time,
+    difficulty: "easy",
+    calories: cal
+  });
+  return {
+    menu: [
+      { day: "Monday", breakfast: simpleMeal("Oatmeal with Banana", ["oats", "milk", "banana", "honey"], "10 min", 380), lunch: simpleMeal("Chicken Salad", ["chicken breast", "lettuce", "tomato", "olive oil"], "15 min", 420), dinner: simpleMeal("Pasta with Tomato Sauce", ["pasta", "tomato sauce", "garlic", "olive oil"], "20 min", 550), snack: simpleMeal("Greek Yogurt", ["greek yogurt", "honey"], "2 min", 150) },
+      { day: "Tuesday", breakfast: simpleMeal("Avocado Toast", ["bread", "avocado", "egg", "salt"], "10 min", 420), lunch: simpleMeal("Tuna Wrap", ["tortilla", "tuna", "lettuce", "mayo"], "10 min", 430), dinner: simpleMeal("Stir Fry Vegetables & Rice", ["rice", "mixed veg", "soy sauce", "garlic"], "20 min", 500), snack: simpleMeal("Apple with Peanut Butter", ["apple", "peanut butter"], "2 min", 200) },
+      { day: "Wednesday", breakfast: simpleMeal("Smoothie", ["banana", "spinach", "milk", "honey"], "5 min", 320), lunch: simpleMeal("Lentil Soup", ["lentils", "carrot", "onion", "broth"], "25 min", 380), dinner: simpleMeal("Grilled Chicken with Rice", ["chicken breast", "rice", "broccoli", "butter"], "25 min", 580), snack: simpleMeal("Mixed Nuts", ["almonds", "cashews"], "1 min", 180) },
+      { day: "Thursday", breakfast: simpleMeal("Scrambled Eggs & Toast", ["eggs", "bread", "butter", "salt"], "8 min", 380), lunch: simpleMeal("Rice Bowl with Beans", ["rice", "black beans", "avocado", "salsa"], "15 min", 480), dinner: simpleMeal("Roast Chicken with Potatoes", ["chicken", "potatoes", "carrot", "olive oil"], "40 min", 600), snack: simpleMeal("Banana", ["banana"], "1 min", 100) },
+      { day: "Friday", breakfast: simpleMeal("Pancakes", ["flour", "egg", "milk", "syrup"], "15 min", 480), lunch: simpleMeal("Ham & Cheese Sandwich", ["bread", "ham", "cheese", "lettuce"], "8 min", 450), dinner: simpleMeal("Pizza Margherita", ["pizza base", "tomato sauce", "mozzarella", "basil"], "25 min", 650), snack: simpleMeal("Fruit Salad", ["apple", "banana", "grapes"], "5 min", 150) },
+      { day: "Saturday", breakfast: simpleMeal("Bagel with Cream Cheese", ["bagel", "cream cheese", "smoked salmon"], "8 min", 420), lunch: simpleMeal("Leftover Remix", ["leftover protein", "rice", "vegetables"], "10 min", 480), dinner: simpleMeal("Beef Burger & Fries", ["burger bun", "beef patty", "cheese", "potatoes"], "25 min", 700), snack: simpleMeal("Popcorn", ["popcorn", "butter"], "5 min", 180) },
+      { day: "Sunday", breakfast: simpleMeal("French Toast", ["bread", "egg", "cinnamon", "syrup"], "15 min", 450), lunch: simpleMeal("Roasted Vegetables", ["sweet potato", "carrot", "beetroot", "olive oil"], "30 min", 400), dinner: simpleMeal("Beef Stew", ["beef", "potato", "carrot", "broth"], "60 min", 620), snack: simpleMeal("Cheese & Crackers", ["cheese", "crackers"], "3 min", 220) }
+    ],
+    shoppingList: [
+      { category: "Produce", items: ["spinach", "tomatoes x6", "onions x4", "garlic x1", "lemons x2", "bananas x5", "apples x4", "carrots x1kg", "potatoes x1kg", "broccoli x1", "lettuce x1", "avocados x3", "sweet potato x1kg", "beetroot x1"] },
+      { category: "Protein", items: ["chicken breast 1kg", "eggs x12", "beef patties x4", "beef stew meat 500g", "tuna 1 can", "ham 200g", "smoked salmon 100g"] },
+      { category: "Grains", items: ["oats", "brown rice 1kg", "white rice 1kg", "pasta 500g", "bread 1 loaf", "tortillas x4", "bagels x4", "pizza base x1", "burger buns x4", "flour 1kg", "crackers"] },
+      { category: "Dairy", items: ["milk 2L", "greek yogurt 500g", "butter 250g", "cheese 200g", "cream cheese 250g", "mozzarella 200g"] },
+      { category: "Pantry", items: ["olive oil", "soy sauce", "salt", "pepper", "syrup", "honey", "cinnamon", "mayo", "tomato sauce", "salsa", "broth", "peanut butter", "mixed nuts", "popcorn kernels"] }
+    ],
+    totalPrepTime: "~25 min/day average"
+  };
 }
 async function suggestMealsFromIngredients(ingredients, preferences) {
   const prompt = `I have these ingredients: ${ingredients.join(", ")}.
@@ -1958,23 +1990,18 @@ Return ONLY valid JSON:
 }`;
   try {
     const result = JSON.parse(await callAI(prompt));
-    return result;
+    if (result && Array.isArray(result.menu) && result.menu.length > 0) {
+      return result;
+    }
+    console.warn("[generateWeeklyMenu] AI returned no menu, using fallback");
   } catch {
-    const fallback = JSON.parse(generateFallback("shopping list"));
-    return {
-      menu: [
-        { day: "Monday", breakfast: { name: "Oatmeal", ingredients: ["oats", "milk", "banana"], instructions: "Cook oats, top with banana", prepTime: "5 min", difficulty: "easy", calories: 350 }, lunch: { name: "Salad", ingredients: ["greens", "chicken", "dressing"], instructions: "Toss and serve", prepTime: "10 min", difficulty: "easy", calories: 400 }, dinner: { name: "Stir Fry", ingredients: ["rice", "veg", "soy sauce"], instructions: "Stir fry and serve", prepTime: "20 min", difficulty: "easy", calories: 500 }, snack: { name: "Yogurt", ingredients: ["yogurt", "honey"], instructions: "Mix and enjoy", prepTime: "1 min", difficulty: "easy", calories: 150 } },
-        { day: "Tuesday", breakfast: { name: "Toast", ingredients: ["bread", "avocado", "egg"], instructions: "Toast, top, serve", prepTime: "5 min", difficulty: "easy", calories: 350 }, lunch: { name: "Wrap", ingredients: ["tortilla", "turkey", "greens"], instructions: "Wrap and serve", prepTime: "5 min", difficulty: "easy", calories: 400 }, dinner: { name: "Pasta", ingredients: ["pasta", "tomato sauce", "cheese"], instructions: "Cook pasta, add sauce", prepTime: "20 min", difficulty: "easy", calories: 500 }, snack: { name: "Apple", ingredients: ["apple", "peanut butter"], instructions: "Slice and dip", prepTime: "1 min", difficulty: "easy", calories: 200 } },
-        { day: "Wednesday", breakfast: { name: "Smoothie", ingredients: ["banana", "spinach", "milk", "protein"], instructions: "Blend all", prepTime: "5 min", difficulty: "easy", calories: 350 }, lunch: { name: "Soup", ingredients: ["broth", "vegetables", "noodles"], instructions: "Simmer and serve", prepTime: "15 min", difficulty: "easy", calories: 350 }, dinner: { name: "Grilled Fish", ingredients: ["fish", "lemon", "herbs", "rice"], instructions: "Grill fish, serve with rice", prepTime: "25 min", difficulty: "medium", calories: 450 }, snack: { name: "Nuts", ingredients: ["almonds", "raisins"], instructions: "Mix in bowl", prepTime: "1 min", difficulty: "easy", calories: 200 } },
-        { day: "Thursday", breakfast: { name: "Eggs", ingredients: ["eggs", "toast", "butter"], instructions: "Fry eggs, toast bread", prepTime: "5 min", difficulty: "easy", calories: 350 }, lunch: { name: "Bowl", ingredients: ["rice", "beans", "avocado", "salsa"], instructions: "Layer in bowl", prepTime: "10 min", difficulty: "easy", calories: 450 }, dinner: { name: "Chicken", ingredients: ["chicken", "potatoes", "veg"], instructions: "Roast chicken and veg", prepTime: "40 min", difficulty: "medium", calories: 550 }, snack: { name: "Crackers", ingredients: ["crackers", "hummus"], instructions: "Dip and enjoy", prepTime: "1 min", difficulty: "easy", calories: 180 } },
-        { day: "Friday", breakfast: { name: "Pancakes", ingredients: ["flour", "egg", "milk", "syrup"], instructions: "Mix and cook", prepTime: "15 min", difficulty: "easy", calories: 400 }, lunch: { name: "Sandwich", ingredients: ["bread", "ham", "cheese", "greens"], instructions: "Assemble sandwich", prepTime: "5 min", difficulty: "easy", calories: 400 }, dinner: { name: "Pizza", ingredients: ["dough", "sauce", "cheese", "toppings"], instructions: "Top and bake", prepTime: "30 min", difficulty: "medium", calories: 600 }, snack: { name: "Fruit", ingredients: ["berries", "cream"], instructions: "Serve in bowl", prepTime: "1 min", difficulty: "easy", calories: 150 } },
-        { day: "Saturday", breakfast: { name: "Bagel", ingredients: ["bagel", "cream cheese", "salmon"], instructions: "Toast, spread, top", prepTime: "5 min", difficulty: "easy", calories: 400 }, lunch: { name: "Leftovers", ingredients: ["leftover protein", "rice", "veg"], instructions: "Reheat and serve", prepTime: "5 min", difficulty: "easy", calories: 450 }, dinner: { name: "Burger", ingredients: ["patty", "bun", "cheese", "greens"], instructions: "Grill patty, assemble", prepTime: "20 min", difficulty: "easy", calories: 550 }, snack: { name: "Popcorn", ingredients: ["kernels", "butter", "salt"], instructions: "Pop and season", prepTime: "5 min", difficulty: "easy", calories: 150 } },
-        { day: "Sunday", breakfast: { name: "French Toast", ingredients: ["bread", "egg", "cinnamon", "syrup"], instructions: "Dip bread, fry, serve", prepTime: "15 min", difficulty: "easy", calories: 400 }, lunch: { name: "Roast Veg", ingredients: ["vegetables", "olive oil", "herbs"], instructions: "Roast until tender", prepTime: "30 min", difficulty: "easy", calories: 350 }, dinner: { name: "Stew", ingredients: ["beef", "potatoes", "carrots", "broth"], instructions: "Slow cook all day", prepTime: "10 min", difficulty: "easy", calories: 500 }, snack: { name: "Cheese Plate", ingredients: ["cheese", "crackers", "grapes"], instructions: "Arrange on plate", prepTime: "2 min", difficulty: "easy", calories: 200 } }
-      ],
-      shoppingList: fallback.shoppingList,
-      totalPrepTime: "~30 min/day average"
-    };
   }
+  const fallback = JSON.parse(generateFallback("weekly menu"));
+  return {
+    menu: fallback.menu,
+    shoppingList: fallback.shoppingList,
+    totalPrepTime: fallback.totalPrepTime
+  };
 }
 function saveMealPlan(userId, plan) {
   const db = getDb();
@@ -3703,7 +3730,6 @@ var appRouter = router({
     meditationGuide: publicProcedure.query(async () => {
       return [
         {
-          title: "Morning Mindfulness",
           description: "Start your day with clarity and intention through this gentle awakening practice.",
           duration: "10 min",
           steps: [
@@ -3937,6 +3963,102 @@ Write the reflection now. Just the paragraph, no headers, no labels.`;
         ).all(ctx.user.id, input?.limit ?? 20);
       } catch {
         return [];
+      }
+    }),
+    // ── Daily Meditation (AI-generated, tied to today's Bible verse) ──
+    // Different from dailyReflection: this is a 5-7 step PRACTICE you can
+    // do right now, not a paragraph of reflection. Tied to the same daily
+    // verse so the app feels coherent across Home + Lifestyle.
+    dailyMeditation: publicProcedure.input(z.object({ reading: z.string().optional() }).optional()).mutation(async ({ input }) => {
+      const anchor = await get_daily_verse_payload(input?.reading || "general");
+      const verseRef = anchor.verse.reference;
+      const verseText = anchor.verse.text;
+      const prompt = `You are a gentle, contemplative meditation guide writing a 5-7 step meditation practice for a Mystic AI user.
+
+TODAY'S VERSE:
+${verseRef} \u2014 "${verseText}"
+
+USER CONTEXT (their last reading, if any):
+${input?.reading || "general"}
+(If "general", write for any seeker. If tarot/astrology/numerology/dream/palm/face, subtly connect the meditation body posture or breath pattern to what their reading may have stirred.)
+
+THE ANCHOR \u2014 read this before writing:
+- The cards, the stars, the numbers \u2014 they are a mirror, not the light. The Bible is the light behind the mirror.
+- This is a PRACTICE, not a reflection. Steps must be doable in 8-12 minutes. Use concrete body instructions: "Sit", "Breathe", "Place your hand on your chest", "Notice the weight of your shoulders", etc.
+- The user is in an app full of divination. This meditation is the natural ground beneath the reading, not a sermon.
+- Jesus Christ is the answer to the question every divination ritual is secretly asking. If the verse is about Christ, rest in that. If the verse is about fear, suffering, comfort, or God-as-comforter, follow the verse.
+- Honor the seeker's free will absolutely. Do not preach. Do not coerce.
+- Close with a single sentence that lands. Not a question. A landing.
+
+OUTPUT FORMAT \u2014 return ONLY valid JSON (no markdown, no code fences):
+{
+  "title": "Meditation title that references the verse (e.g. 'Be Still \u2014 Psalm 46:10', 'Rest for the Weary \u2014 Matthew 11:28')",
+  "duration": "8 min" or "10 min" or "12 min" \u2014 your honest estimate,
+  "description": "1-2 sentences. What this practice opens. Plain English. No preaching.",
+  "steps": [
+    "Find a comfortable seated position. Close your eyes. Place both hands on your knees.",
+    "Take three slow, deep breaths. Inhale through your nose, feeling your chest rise.",
+    "Bring your attention to your heart center. Place your right hand gently over your heart.",
+    "Read the verse silently, slowly, two or three times. Let each word settle before the next.",
+    "Sit with whatever arises \u2014 comfort, restlessness, tears, silence. Do not analyze. Just be with it.",
+    "After several minutes, place both hands back on your knees. Gently open your eyes.",
+    "Carry this stillness with you into the next hour. The verse goes with you."
+  ],
+  "closingLine": "One sentence that lands at the end. Not a question."
+}
+
+RULES:
+- title MUST include the verse reference. Not optional.
+- 5-7 steps. Not 3, not 10.
+- Each step 10-20 words. Concrete. Actionable.
+- DO NOT prefix steps with 'Step 1:', 'Step 2:', '1.', '2.' or any numbering. The steps array is already ordered.
+- description and closingLine are 1 sentence each.
+- Do NOT add commentary outside the JSON.`;
+      try {
+        const raw = await callLLM(prompt);
+        let json = raw.trim();
+        if (json.startsWith("```")) {
+          json = json.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+        }
+        const parsed = JSON.parse(json);
+        if (!parsed.title || !Array.isArray(parsed.steps) || parsed.steps.length < 3) {
+          throw new Error("Invalid shape from LLM");
+        }
+        return {
+          meditation: {
+            title: parsed.title,
+            duration: parsed.duration || "10 min",
+            description: parsed.description || "",
+            steps: parsed.steps,
+            closingLine: parsed.closingLine || "",
+            verseRef,
+            verseText,
+            date: anchor.date,
+            source: "ai"
+          }
+        };
+      } catch (e) {
+        console.warn("[dailyMeditation] LLM failed, using fallback:", e.message);
+        return {
+          meditation: {
+            title: `Be Still \u2014 ${verseRef}`,
+            duration: "8 min",
+            description: `A simple breath practice anchored in today's verse: "${verseText.slice(0, 80)}..."`,
+            steps: [
+              "Sit comfortably. Close your eyes. Take three slow breaths.",
+              "Place your hand on your chest. Notice the heart beating. That is the One who made you, still keeping you alive.",
+              `Read silently: "${verseText.slice(0, 100)}${verseText.length > 100 ? "..." : ""}"`,
+              "Sit with that sentence. Do not analyze it. Just let it sit in you.",
+              "If your mind wanders \u2014 and it will \u2014 gently return to the sentence. There is no failure here. There is only sitting.",
+              "After several minutes, open your eyes. Notice the room. Notice yourself. You are the same person, but you are not alone in the room anymore."
+            ],
+            closingLine: "Sit in silence for one more minute. Then return to your day.",
+            verseRef,
+            verseText,
+            date: anchor.date,
+            source: "fallback"
+          }
+        };
       }
     })
   })

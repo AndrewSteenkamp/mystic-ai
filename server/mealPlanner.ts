@@ -52,7 +52,40 @@ function generateFallback(prompt: string): string {
       ]
     });
   }
+  if (prompt.includes("7-day meal plan") || prompt.includes("Create a 7-day") || prompt.includes("weekly menu") || prompt.includes("weekly meal")) {
+    return JSON.stringify(generateFallbackWeeklyMenu());
+  }
   return JSON.stringify({ message: "Plan generated — customize in the app." });
+}
+
+function generateFallbackWeeklyMenu() {
+  const simpleMeal = (name: string, ings: string[], time: string, cal: number) => ({
+    name,
+    ingredients: ings,
+    instructions: `Prepare ${name.toLowerCase()} using the listed ingredients.`,
+    prepTime: time,
+    difficulty: "easy" as const,
+    calories: cal,
+  });
+  return {
+    menu: [
+      { day: "Monday",    breakfast: simpleMeal("Oatmeal with Banana", ["oats","milk","banana","honey"], "10 min", 380), lunch: simpleMeal("Chicken Salad",     ["chicken breast","lettuce","tomato","olive oil"], "15 min", 420), dinner: simpleMeal("Pasta with Tomato Sauce", ["pasta","tomato sauce","garlic","olive oil"], "20 min", 550), snack: simpleMeal("Greek Yogurt",  ["greek yogurt","honey"], "2 min", 150) },
+      { day: "Tuesday",   breakfast: simpleMeal("Avocado Toast",    ["bread","avocado","egg","salt"], "10 min", 420), lunch: simpleMeal("Tuna Wrap",          ["tortilla","tuna","lettuce","mayo"], "10 min", 430), dinner: simpleMeal("Stir Fry Vegetables & Rice", ["rice","mixed veg","soy sauce","garlic"], "20 min", 500), snack: simpleMeal("Apple with Peanut Butter", ["apple","peanut butter"], "2 min", 200) },
+      { day: "Wednesday", breakfast: simpleMeal("Smoothie",         ["banana","spinach","milk","honey"], "5 min", 320), lunch: simpleMeal("Lentil Soup",        ["lentils","carrot","onion","broth"], "25 min", 380), dinner: simpleMeal("Grilled Chicken with Rice", ["chicken breast","rice","broccoli","butter"], "25 min", 580), snack: simpleMeal("Mixed Nuts",  ["almonds","cashews"], "1 min", 180) },
+      { day: "Thursday",  breakfast: simpleMeal("Scrambled Eggs & Toast", ["eggs","bread","butter","salt"], "8 min", 380), lunch: simpleMeal("Rice Bowl with Beans", ["rice","black beans","avocado","salsa"], "15 min", 480), dinner: simpleMeal("Roast Chicken with Potatoes", ["chicken","potatoes","carrot","olive oil"], "40 min", 600), snack: simpleMeal("Banana",       ["banana"], "1 min", 100) },
+      { day: "Friday",    breakfast: simpleMeal("Pancakes",         ["flour","egg","milk","syrup"], "15 min", 480), lunch: simpleMeal("Ham & Cheese Sandwich", ["bread","ham","cheese","lettuce"], "8 min", 450), dinner: simpleMeal("Pizza Margherita",    ["pizza base","tomato sauce","mozzarella","basil"], "25 min", 650), snack: simpleMeal("Fruit Salad",  ["apple","banana","grapes"], "5 min", 150) },
+      { day: "Saturday",  breakfast: simpleMeal("Bagel with Cream Cheese", ["bagel","cream cheese","smoked salmon"], "8 min", 420), lunch: simpleMeal("Leftover Remix",      ["leftover protein","rice","vegetables"], "10 min", 480), dinner: simpleMeal("Beef Burger & Fries", ["burger bun","beef patty","cheese","potatoes"], "25 min", 700), snack: simpleMeal("Popcorn",       ["popcorn","butter"], "5 min", 180) },
+      { day: "Sunday",    breakfast: simpleMeal("French Toast",     ["bread","egg","cinnamon","syrup"], "15 min", 450), lunch: simpleMeal("Roasted Vegetables",  ["sweet potato","carrot","beetroot","olive oil"], "30 min", 400), dinner: simpleMeal("Beef Stew",           ["beef","potato","carrot","broth"], "60 min", 620), snack: simpleMeal("Cheese & Crackers", ["cheese","crackers"], "3 min", 220) },
+    ],
+    shoppingList: [
+      { category: "Produce", items: ["spinach", "tomatoes x6", "onions x4", "garlic x1", "lemons x2", "bananas x5", "apples x4", "carrots x1kg", "potatoes x1kg", "broccoli x1", "lettuce x1", "avocados x3", "sweet potato x1kg", "beetroot x1"] },
+      { category: "Protein", items: ["chicken breast 1kg", "eggs x12", "beef patties x4", "beef stew meat 500g", "tuna 1 can", "ham 200g", "smoked salmon 100g"] },
+      { category: "Grains", items: ["oats", "brown rice 1kg", "white rice 1kg", "pasta 500g", "bread 1 loaf", "tortillas x4", "bagels x4", "pizza base x1", "burger buns x4", "flour 1kg", "crackers"] },
+      { category: "Dairy", items: ["milk 2L", "greek yogurt 500g", "butter 250g", "cheese 200g", "cream cheese 250g", "mozzarella 200g"] },
+      { category: "Pantry", items: ["olive oil", "soy sauce", "salt", "pepper", "syrup", "honey", "cinnamon", "mayo", "tomato sauce", "salsa", "broth", "peanut butter", "mixed nuts", "popcorn kernels"] },
+    ],
+    totalPrepTime: "~25 min/day average",
+  };
 }
 
 // ── PUBLIC API ──
@@ -196,23 +229,21 @@ Return ONLY valid JSON:
 
   try {
     const result = JSON.parse(await callAI(prompt));
-    return result;
+    if (result && Array.isArray(result.menu) && result.menu.length > 0) {
+      return result;
+    }
+    // AI returned JSON but no menu array — fall through to the hardcoded plan below
+    console.warn("[generateWeeklyMenu] AI returned no menu, using fallback");
   } catch {
-    const fallback = JSON.parse(generateFallback("shopping list"));
-    return {
-      menu: [
-        { day: "Monday", breakfast: { name: "Oatmeal", ingredients: ["oats","milk","banana"], instructions: "Cook oats, top with banana", prepTime:"5 min", difficulty:"easy", calories:350 }, lunch: { name: "Salad", ingredients: ["greens","chicken","dressing"], instructions: "Toss and serve", prepTime:"10 min", difficulty:"easy", calories:400 }, dinner: { name: "Stir Fry", ingredients: ["rice","veg","soy sauce"], instructions: "Stir fry and serve", prepTime:"20 min", difficulty:"easy", calories:500 }, snack: { name: "Yogurt", ingredients: ["yogurt","honey"], instructions: "Mix and enjoy", prepTime:"1 min", difficulty:"easy", calories:150 } },
-        { day: "Tuesday", breakfast: { name: "Toast", ingredients: ["bread","avocado","egg"], instructions: "Toast, top, serve", prepTime:"5 min", difficulty:"easy", calories:350 }, lunch: { name: "Wrap", ingredients: ["tortilla","turkey","greens"], instructions: "Wrap and serve", prepTime:"5 min", difficulty:"easy", calories:400 }, dinner: { name: "Pasta", ingredients: ["pasta","tomato sauce","cheese"], instructions: "Cook pasta, add sauce", prepTime:"20 min", difficulty:"easy", calories:500 }, snack: { name: "Apple", ingredients: ["apple","peanut butter"], instructions: "Slice and dip", prepTime:"1 min", difficulty:"easy", calories:200 } },
-        { day: "Wednesday", breakfast: { name: "Smoothie", ingredients: ["banana","spinach","milk","protein"], instructions: "Blend all", prepTime:"5 min", difficulty:"easy", calories:350 }, lunch: { name: "Soup", ingredients: ["broth","vegetables","noodles"], instructions: "Simmer and serve", prepTime:"15 min", difficulty:"easy", calories:350 }, dinner: { name: "Grilled Fish", ingredients: ["fish","lemon","herbs","rice"], instructions: "Grill fish, serve with rice", prepTime:"25 min", difficulty:"medium", calories:450 }, snack: { name: "Nuts", ingredients: ["almonds","raisins"], instructions: "Mix in bowl", prepTime:"1 min", difficulty:"easy", calories:200 } },
-        { day: "Thursday", breakfast: { name: "Eggs", ingredients: ["eggs","toast","butter"], instructions: "Fry eggs, toast bread", prepTime:"5 min", difficulty:"easy", calories:350 }, lunch: { name: "Bowl", ingredients: ["rice","beans","avocado","salsa"], instructions: "Layer in bowl", prepTime:"10 min", difficulty:"easy", calories:450 }, dinner: { name: "Chicken", ingredients: ["chicken","potatoes","veg"], instructions: "Roast chicken and veg", prepTime:"40 min", difficulty:"medium", calories:550 }, snack: { name: "Crackers", ingredients: ["crackers","hummus"], instructions: "Dip and enjoy", prepTime:"1 min", difficulty:"easy", calories:180 } },
-        { day: "Friday", breakfast: { name: "Pancakes", ingredients: ["flour","egg","milk","syrup"], instructions: "Mix and cook", prepTime:"15 min", difficulty:"easy", calories:400 }, lunch: { name: "Sandwich", ingredients: ["bread","ham","cheese","greens"], instructions: "Assemble sandwich", prepTime:"5 min", difficulty:"easy", calories:400 }, dinner: { name: "Pizza", ingredients: ["dough","sauce","cheese","toppings"], instructions: "Top and bake", prepTime:"30 min", difficulty:"medium", calories:600 }, snack: { name: "Fruit", ingredients: ["berries","cream"], instructions: "Serve in bowl", prepTime:"1 min", difficulty:"easy", calories:150 } },
-        { day: "Saturday", breakfast: { name: "Bagel", ingredients: ["bagel","cream cheese","salmon"], instructions: "Toast, spread, top", prepTime:"5 min", difficulty:"easy", calories:400 }, lunch: { name: "Leftovers", ingredients: ["leftover protein","rice","veg"], instructions: "Reheat and serve", prepTime:"5 min", difficulty:"easy", calories:450 }, dinner: { name: "Burger", ingredients: ["patty","bun","cheese","greens"], instructions: "Grill patty, assemble", prepTime:"20 min", difficulty:"easy", calories:550 }, snack: { name: "Popcorn", ingredients: ["kernels","butter","salt"], instructions: "Pop and season", prepTime:"5 min", difficulty:"easy", calories:150 } },
-        { day: "Sunday", breakfast: { name: "French Toast", ingredients: ["bread","egg","cinnamon","syrup"], instructions: "Dip bread, fry, serve", prepTime:"15 min", difficulty:"easy", calories:400 }, lunch: { name: "Roast Veg", ingredients: ["vegetables","olive oil","herbs"], instructions: "Roast until tender", prepTime:"30 min", difficulty:"easy", calories:350 }, dinner: { name: "Stew", ingredients: ["beef","potatoes","carrots","broth"], instructions: "Slow cook all day", prepTime:"10 min", difficulty:"easy", calories:500 }, snack: { name: "Cheese Plate", ingredients: ["cheese","crackers","grapes"], instructions: "Arrange on plate", prepTime:"2 min", difficulty:"easy", calories:200 } },
-      ],
-      shoppingList: fallback.shoppingList,
-      totalPrepTime: "~30 min/day average",
-    };
+    // AI failed or returned invalid JSON — fall through
   }
+  // Hardcoded fallback: 7-day plan with shopping list
+  const fallback = JSON.parse(generateFallback("weekly menu"));
+  return {
+    menu: fallback.menu,
+    shoppingList: fallback.shoppingList,
+    totalPrepTime: fallback.totalPrepTime,
+  };
 }
 
 // ── 4. Generate consolidated shopping list from menu ──
