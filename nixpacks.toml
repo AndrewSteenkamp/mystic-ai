@@ -1,0 +1,17 @@
+# nixpacks.toml — customizations for mystic-ai deploy
+# - Adds Python to the setup phase so node-gyp can build better-sqlite3
+#   when its prebuild-install fallback runs (e.g. when the prebuild for
+#   node 18.20.5 ABI 127 is missing or unreachable from the container).
+# - Forwards PYTHON env so gyp's PythonFinder doesn't fail.
+
+[phases.setup]
+nixPkgs = ["...", "python311"]
+
+[phases.install]
+cmds = ["pnpm i --frozen-lockfile"]
+
+[phases.build]
+cmds = ["echo 'dist is pre-built'"]
+
+[start]
+cmd = "node dist/index.js"
