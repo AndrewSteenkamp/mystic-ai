@@ -28,6 +28,9 @@ import { calculateCompatibility, generateCompatibilityPrompt } from "./divinatio
 import { scanMessage, checkAstroCompatibility } from "./safety";
 import { suggestMealsFromIngredients, breakdownRecipe, generateWeeklyMenu, generateShoppingList, saveMealPlan, getMealPlan } from "./mealPlanner";
 import { get_daily_verse_payload } from "./divination/daily_verse";
+import { searchFoods, getFoodById, getFoodsByCategory, getDbStats, FoodItem } from "./lifestyle/foodDb";
+import { identifyFoodFromImage, logFoodMiss, getFoodMisses } from "./lifestyle/foodIdentifier";
+import { calculateNutrition, calculateMeal } from "./lifestyle/kjCalculator";
 
 // ---- LLM Helper ----
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
@@ -794,6 +797,111 @@ THE ANCHOR — read this before writing:
 Write the reflection now. Just the paragraph, no headers, no labels.`;
         const reflection = await callLLM(prompt);
         return { reflection };
+      }),
+
+    // ════════════════════════════════════════════════════════════
+    // ── FOOD IDENTIFIER + KILOJOULE CALCULATOR ──
+    // ════════════════════════════════════════════════════════════
+
+    // ── Search the food database ──
+    searchFoods: publicProcedure
+      .input(z.object({
+        query: z.string().min(1),
+        limit: z.number().min(1).max(50).default(10),
+      }))
+      .query(({ input }) => {
+        return searchFoods(input.query, input.limit);
+      }),
+
+    // ── Get a single food by slug id ──
+    getFood: publicProcedure
+      .input(z.object({ id: z.string() }))
+      .query(({ input }) => {
+        return getFoodById(input.id);
+      }),
+
+    // ── All foods in a category ──
+    getFoodsByCategory: publicProcedure
+      .input(z.object({ category: z.string() }))
+      .query(({ input }) => {
+        return getFoodsByCategory(input.category);
+      }),
+
+    // ── Database stats (total items, SA staples, by-category breakdown) ──
+    getFoodDbStats: publicProcedure
+      .query(() => {
+        return getDbStats();
+      }),
+
+    // ── Identify a food from a base64 image (Gemini vision → DB match) ──
+    identifyFood: publicProcedure
+      .input(z.object({
+        imageBase64: z.string().min(100, "Image too small"),
+      }))
+      .mutation(async ({ input }) => {
+        return identifyFoodFromImage(input.imageBase64);
+      }),
+
+    // ── Calculate kJ + macros for a named food at a given gram weight ──
+    calculateKJ: publicProcedure
+      .input(z.object({
+        foodName: z.string().min(1),
+        grams: z.number().min(1).max(5000),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id;
+        const result = await calculateNutrition(input.foodName, input.grams, userId);
+
+        // Save successful lookups to user's history (only if it's a real user, not anonymous)
+        if (userId && result.source !== "fallback") {
+          try {
+            const dbConn = (await import("./db")).getDb();
+            if (dbConn) {
+              dbConn.prepare(
+                "INSERT INTO food_calculations (user_id, food_name, grams, total_kj, total_kcal, source) VALUES (?, ?, ?, ?, ?, ?)"
+              ).run(userId, result.matchedFoodName || input.foodName, input.grams, result.totals.kj, result.totals.kcal, result.source);
+            }
+          } catch (e) {
+            // non-fatal
+            console.warn("[KJCalc] save failed:", (e as Error).message);
+          }
+        }
+
+        return result;
+      }),
+
+    // ── Calculate kJ for a whole meal (list of items) ──
+    calculateMealKJ: publicProcedure
+      .input(z.object({
+        items: z.array(z.object({
+          food: z.string().min(1),
+          grams: z.number().min(1).max(5000),
+        })).min(1).max(20),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        return calculateMeal(input.items, ctx.user?.id);
+      }),
+
+    // ── Get logged DB misses (for admin review / DB expansion) ──
+    getFoodMisses: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(200).default(50) }))
+      .query(({ input }) => {
+        return getFoodMisses(input.limit);
+      }),
+
+    // ── User's own calculation history ──
+    myFoodHistory: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(100).default(20) }).optional())
+      .query(async ({ input, ctx }) => {
+        const dbConn = (await import("./db")).getDb();
+        if (!dbConn) return [];
+        try {
+          return dbConn.prepare(
+            "SELECT food_name, grams, total_kj, total_kcal, source, created_at FROM food_calculations WHERE user_id = ? ORDER BY created_at DESC LIMIT ?"
+          ).all(ctx.user.id, input?.limit ?? 20) as any[];
+        } catch {
+          return [];
+        }
       }),
   }),
 });

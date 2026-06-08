@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import { BookOpen, Utensils, Sparkles, Save, ShoppingBag, ExternalLink, Heart, ChefHat, ListChecks, ShoppingCart, Calendar, RefreshCw } from "lucide-react";
+import { BookOpen, Utensils, Sparkles, Save, ShoppingBag, ExternalLink, Heart, ChefHat, ListChecks, ShoppingCart, Calendar, RefreshCw, Camera, Calculator } from "lucide-react";
+import FoodIdentifier from "./FoodIdentifier";
+import KJCalculator from "./KJCalculator";
 
 const TABS = [
   { key: "journal", label: "Journal", icon: BookOpen },
-  { key: "diet", label: "Diet Plans", icon: Utensils },
-  { key: "mealplan", label: "Meal Plan", icon: Calendar },
-  { key: "meditation", label: "Meditation", icon: Sparkles },
+  { key: "diet", label: "Diet", icon: Utensils },
+  { key: "mealplan", label: "Meals", icon: Calendar },
+  { key: "foodid", label: "Identify", icon: Camera },
+  { key: "kjcalc", label: "kJ Calc", icon: Calculator },
+  { key: "meditation", label: "Meditate", icon: Sparkles },
   { key: "shop", label: "Shop", icon: ShoppingBag },
 ];
 
@@ -400,6 +404,12 @@ export default function LifestylePage() {
           </div>
         </div>
       )}
+
+      {/* Food Identifier Tab */}
+      {tab === "foodid" && <FoodIdentifier />}
+
+      {/* kJ Calculator Tab */}
+      {tab === "kjcalc" && <KJCalculator />}
     </div>
   );
 }

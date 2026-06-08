@@ -186,6 +186,28 @@ function initSchema(db: Database.Database) {
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+    CREATE TABLE IF NOT EXISTS food_misses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      food_name TEXT NOT NULL,
+      source TEXT NOT NULL DEFAULT 'calculator',
+      user_id INTEGER,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_food_misses_name ON food_misses(food_name);
+
+    CREATE TABLE IF NOT EXISTS food_calculations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      food_name TEXT NOT NULL,
+      grams REAL NOT NULL,
+      total_kj REAL NOT NULL,
+      total_kcal REAL NOT NULL,
+      source TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_food_calc_user ON food_calculations(user_id, created_at);
   `);
 }
 
